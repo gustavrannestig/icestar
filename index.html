@@ -5,11 +5,9 @@
 	
 </head>
 <body>
-	<canvas id="paperCanvas"></canvas>
-	<script src="libs/TrackballControls.js"></script>
-	<script type="text/javascript">
-		// Create a new path once, when the script is executed:
-// Create a new path once, when the script is executed:
+<canvas id="paperCanvas"></canvas>
+<script src="libs/TrackballControls.js"></script>
+<script type="text/javascript">
 
 var yAxisCenter;
 var xAxisCenter;
@@ -27,15 +25,22 @@ var gridRect;
 
 var scene, camera, renderer, controls;
 
+//Main initializing function - should set up paper canvas and three js scene.
 var init = function() {
 	//The main path
 	myPath = new paper.Path();
 	myPath.strokeColor = 'black';
 
 	//init render button
-	var buttonPosition = new paper.Point(10,10);
-	var buttonSize = new paper.Size(10, 10);
+	var buttonPosition = new paper.Point(40,20);
+	var buttonSize = new paper.Size(40, 20);
 	var button = new paper.Path.Rectangle(buttonPosition, buttonSize);
+
+	var text = new PointText(new Point(42, 22));
+	text.justification = 'center';
+	text.fillColor = 'black';
+	text.content = 'Generate shape';
+
 	button.strokeColor = 'black';
 	buttonRect = new paper.Rectangle(buttonPosition, buttonSize);
 
@@ -46,6 +51,7 @@ var init = function() {
 	xAxisCenter = new paper.Point(400, 300);
 	xAxisRight = new paper.Point(500, 300);
 
+	//make the axis paths
 	var yAxis = new paper.Path();
 	var xAxis = new paper.Path();
 
@@ -58,6 +64,7 @@ var init = function() {
 	yAxis.strokeColor = 'black';
 	xAxis.strokeColor = 'black';
 
+	//make a rect to get a box for detecting clicks inside grid.
 	gridRect = new paper.Rectangle(yAxisTop, new paper.Size(200, 200));
 
 	//add starting point to myPath
@@ -75,14 +82,17 @@ var init = function() {
 	firstPath.strokeColor = 'black';
 	thirdPath.strokeColor = 'black';
 	fourthPath.strokeColor = 'black';
+
+	//Draw the view
 	paper.view.draw();
 
+	//init the threejs canvas
 	initThree();
 	render();
 
+	//Animate handler for three
 	function animate() {
 		requestAnimationFrame(animate);
-		//renderer.render(scene, camera);
 		controls.update();
 	}
 
@@ -95,6 +105,7 @@ var init = function() {
 		renderer.setSize(500,500);
 		renderer.setClearColor(0x333F47, 1);
 
+		//Some random lights.
 	 	light = new THREE.DirectionalLight( 0xffffff );
 		light.position.set( 1, 1, 1 );
 		scene.add( light );
@@ -106,6 +117,7 @@ var init = function() {
 		light = new THREE.AmbientLight( 0x222222 );
 		scene.add( light );
 
+		//Add controls to scene - These are trackball controls. 
 		controls = new THREE.TrackballControls( camera );
 		controls.addEventListener( 'change', render );
 
@@ -113,11 +125,14 @@ var init = function() {
 
 		animate();
 	}
+
+	//initial render and render on controls change. 
 	function render() {
 		renderer.render(scene, camera);
 	};
 }
 
+//Should mirror path that is drawn on each side of x and y axis.
 var mirrorPath = function(point) {
 	//mirror the point in the first, third and fourth qadrant
 	var firstPoint = new paper.Point();
@@ -136,8 +151,8 @@ var mirrorPath = function(point) {
 	fourthPath.add(fourthPoint);
 }
 
+//Make shape from an array of segments(Points.)
 var makeShape = function(segments) {
-	//shape should be on the form of
 
 	var shapePts = [];
 
@@ -156,6 +171,7 @@ var makeShape = function(segments) {
 
 }
 
+//Add shape - with additional shapes to it. in the three.js scene.
 var addShape = function( shape, extrudeSettings, color) {
 
 	var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
@@ -187,6 +203,7 @@ var addShape = function( shape, extrudeSettings, color) {
 	renderer.render(scene, camera);
 }
 
+
 window.onload = function() {
 	var paperCanvas = document.getElementById('paperCanvas');
 	paperCanvas.height = 500;
@@ -197,10 +214,13 @@ window.onload = function() {
 
 	var tool = new paper.Tool();
 
+	//Register mousedown tool for the paper canvas.
 	tool.onMouseDown = function onMouseDown(event) {
-		// Add a segment to the path at the position of the mouse:
+
+		//If the little button is pressed we add an object. in the three.js scene.
 		if(event.point.isInside(buttonRect)){
-			console.log("button pressed");
+
+			//Connect all the paths at center of axis.
 			myPath.add(xAxisCenter);
 			mirrorPath(xAxisCenter);
 
@@ -208,6 +228,7 @@ window.onload = function() {
 			firstPath.reverse()
 
 			var newPath = new paper.Path(myPath.segments);
+			//Slice to avoid duplicate points. 
 			newPath.addSegments(fourthPath.segments.slice(1));
 			newPath.addSegments(thirdPath.segments.slice(1));
 			newPath.addSegments(firstPath.segments.slice(1));
@@ -218,6 +239,8 @@ window.onload = function() {
 			makeShape(newPath.segments);
 
 		}
+
+		// Add a segment to the path at the position of the mouse:
 		else if(event.point.isInside(gridRect)) {
 			myPath.add(event.point);
 			mirrorPath(event.point);
@@ -225,5 +248,5 @@ window.onload = function() {
 		paper.view.draw();
 	}
 }
-	</script>
+</script>
 </body>

@@ -63,15 +63,6 @@
 		function onMouseDown(event) {
 			// Add a segment to the path at the position of the mouse:
 
-			testPath = myPath.clone();
-
-			testPath.strokeColor = null;
-
-			testPath.add(event.point);
-
-			if (testPath.intersects(testPath)) {
-
-			}
 
 			else if(event.point.isInside(buttonRect)){
 				console.log("button pressed");
@@ -82,4 +73,6 @@
 				myPath.add(event.point);
 				mirrorPath(event.point);
 			}
+
+			console.log(myPath.exportSVG({asString: true}));
 		}

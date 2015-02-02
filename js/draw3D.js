@@ -74,5 +74,5 @@
 				mirrorPath(event.point);
 			}
 
-			console.log(myPath.exportSVG({asString: true}));
+			console.log(myPath.exportSVG());
 		}

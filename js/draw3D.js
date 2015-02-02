@@ -64,7 +64,7 @@
 			// Add a segment to the path at the position of the mouse:
 
 
-			else if(event.point.isInside(buttonRect)){
+			if(event.point.isInside(buttonRect)){
 				console.log("button pressed");
 				myPath.add(xAxisCenter);
 				mirrorPath(xAxisCenter);

@@ -69,7 +69,7 @@
 
 			testPath.add(event.point);
 
-			if (testPath.intersects(myPath)) {
+			if (testPath.intersects(testPath)) {
 
 			}
 

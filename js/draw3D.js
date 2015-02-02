@@ -63,7 +63,17 @@
 		function onMouseDown(event) {
 			// Add a segment to the path at the position of the mouse:
 
-			if(event.point.isInside(buttonRect)){
+			testPath = myPath.clone();
+
+			testPath.strokeColor = null;
+
+			testPath.add(event.point);
+
+			if (testPath.intersects(myPath)) {
+
+			}
+
+			else if(event.point.isInside(buttonRect)){
 				console.log("button pressed");
 				myPath.add(xAxisCenter);
 				mirrorPath(xAxisCenter);

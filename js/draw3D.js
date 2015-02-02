@@ -1,3 +1,4 @@
+
 var yAxisCenter;
 var xAxisCenter;
 var center;
@@ -11,6 +12,8 @@ var fourthPath;
 
 var buttonRect;
 var gridRect;
+
+var scene, camera, renderer, controls;
 
 var init = function() {
 	//The main path
@@ -60,7 +63,47 @@ var init = function() {
 	firstPath.strokeColor = 'black';
 	thirdPath.strokeColor = 'black';
 	fourthPath.strokeColor = 'black';
-	paper.view.draw();	
+	paper.view.draw();
+
+	initThree();
+	render();
+
+	function animate() {
+		requestAnimationFrame(animate);
+		//renderer.render(scene, camera);
+		controls.update();
+	}
+
+	//Init three.js scene
+	function initThree() {
+		scene = new THREE.Scene();
+		camera = new THREE.PerspectiveCamera(75, 500/500, 0.1, 1000 ) //Scene size absolute(500 500)
+		camera.position.z = 100;
+		renderer = new THREE.WebGLRenderer({ alpha: true });
+		renderer.setSize(500,500);
+		renderer.setClearColor(0x333F47, 1);
+
+	 	light = new THREE.DirectionalLight( 0xffffff );
+		light.position.set( 1, 1, 1 );
+		scene.add( light );
+
+		light = new THREE.DirectionalLight( 0xffffff );
+		light.position.set( -1, -1, -1 );
+		scene.add( light );
+
+		light = new THREE.AmbientLight( 0x222222 );
+		scene.add( light );
+
+		controls = new THREE.TrackballControls( camera );
+		controls.addEventListener( 'change', render );
+
+		document.body.appendChild( renderer.domElement );
+
+		animate();
+	}
+	function render() {
+		renderer.render(scene, camera);
+	};
 }
 
 var mirrorPath = function(point) {
@@ -81,8 +124,61 @@ var mirrorPath = function(point) {
 	fourthPath.add(fourthPoint);
 }
 
+var makeShape = function(segments) {
+	//shape should be on the form of
+
+	var shapePts = [];
+
+	for(var i = 0; i < segments.length; i++) {
+		var vector = new THREE.Vector2 ( segments[i].point.x, segments[i].point.y );
+		shapePts.push(vector);
+	}
+
+	for( var i = 0; i < shapePts.length; i ++ ) shapePts[ i ].multiplyScalar( 0.25 );
+
+	var shape = new THREE.Shape( shapePts);
+
+	var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+
+	addShape( shape,  extrudeSettings);
+
+}
+
+var addShape = function( shape, extrudeSettings, color) {
+
+	var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+	geometry.center();
+
+	var material = new THREE.MeshLambertMaterial({color: 0xFFFFFF});
+	var group = new THREE.Object3D();
+	var shape = new THREE.Mesh( geometry, material);
+	var shape2 = new THREE.Mesh( geometry, material);
+	var shape3 = new THREE.Mesh( geometry, material);
+	var shape4 = new THREE.Mesh( geometry, material);
+	var shape5 = new THREE.Mesh( geometry, material);
+	var shape6 = new THREE.Mesh( geometry, material);
+	var shape7 = new THREE.Mesh( geometry, material);
+	shape2.rotation.y += (Math.PI/2);
+	shape3.rotation.x += (Math.PI/2);
+	shape4.rotation.y += (Math.PI/4);
+	shape5.rotation.x += (Math.PI/4);
+	shape6.rotation.y += (Math.PI *(3/4));
+	shape7.rotation.x += (Math.PI * (3/4));
+	group.add(shape7);
+	group.add(shape6);
+	group.add(shape5);
+	group.add(shape4);
+	group.add( shape3 );
+	group.add( shape2);
+	group.add( shape );
+	scene.add(group);
+	renderer.render(scene, camera);
+}
 
 window.onload = function() {
+	var paperCanvas = document.getElementById('paperCanvas');
+	paperCanvas.height = 500;
+	paperCanvas.width = 500;
 	paper.setup('paperCanvas');
 	
 	init();
@@ -100,12 +196,14 @@ window.onload = function() {
 			firstPath.reverse()
 
 			var newPath = new paper.Path(myPath.segments);
-			newPath.addSegments(fourthPath.segments);
-			newPath.addSegments(thirdPath.segments);
-			newPath.addSegments(firstPath.segments);
+			newPath.addSegments(fourthPath.segments.slice(1));
+			newPath.addSegments(thirdPath.segments.slice(1));
+			newPath.addSegments(firstPath.segments.slice(1));
 			newPath.closed = true;
 
 			newPath.strokeColor = 'red';
+
+			makeShape(newPath.segments);
 
 		}
 		else if(event.point.isInside(gridRect)) {

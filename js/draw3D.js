@@ -1,76 +1,96 @@
-// Create a new path once, when the script is executed:
-		var myPath = new Path();
-		myPath.strokeColor = 'black';
-		var buttonTopLeft = new Point(10,10);
-		var buttonSize = new Size(10,10);
-		var button = new Path.Rectangle(buttonTopLeft, buttonSize);
-		button.strokeColor = 'black';
-		var buttonRect = new Rectangle(buttonTopLeft, buttonSize);
+var yAxisCenter;
+var xAxisCenter;
+var center;
+var xAxisRight
+var yAxisTop;
 
-		var yAxisCenter = new Point(300,200);
-		var xAxisCenter = new Point(400, 300);
-		
+var myPath;
+var firstPath;
+var thirdPath;
+var fourthPath;
 
-		var yAxis = new Path();
-		var xAxis = new Path();
+var buttonRect;
+var gridRect;
 
-		yAxis.add(new Point(300,100));
-		yAxis.add(new Point(300,300));
-		xAxis.add(new Point(300, 300));
-		
-		xAxis.add(new Point(500, 300));
+var init = function() {
+	//The main path
+	myPath = new Path();
+	myPath.strokeColor = 'black';
 
-		yAxis.strokeColor = 'black';
-		xAxis.strokeColor = 'black';
+	//init render button
+	var buttonPosition = new Point(10,10);
+	var buttonSize = new Size(10, 10);
+	var button = new Path.Rectangle(buttonPosition, buttonSize);
+	button.strokeColor = 'black';
+	buttonRect = new Rectangle(buttonPosition, buttonSize);
 
-		var gridRect = new Rectangle(new Point(300,100), new Size(200, 200));
+	//init simple grid
+	center = new Point(300,300);
+	yAxisCenter = new Point(300,200);
+	yAxisTop = new Point(300, 100);
+	xAxisCenter = new Point(400, 300);
+	xAxisRight = new Point(500, 300);
 
-		var firstPath = new Path();
-		var thirdPath = new Path();
-		var fourthPath = new Path();
+	var yAxis = new Path();
+	var xAxis = new Path();
 
-		firstPath.add(yAxisCenter);
-		thirdPath.add(new Point(300,400));
-		fourthPath.add(new Point(300, 400));
+	yAxis.add(yAxisTop);
+	yAxis.add(center);
 
-		firstPath.strokeColor = 'black';
-		thirdPath.strokeColor = 'black';
-		fourthPath.strokeColor = 'black';
+	xAxis.add(xAxisRight);
+	xAxis.add(center);
 
-		var mirrorPath = function(point) {
-			firstPoint = new Point();
-			firstPoint.x = yAxisCenter.x - (point.x - yAxisCenter.x);
-			firstPoint.y = xAxisCenter.y + (point.y - xAxisCenter.y);
-			firstPath.add(firstPoint);
+	yAxis.strokeColor = 'black';
+	xAxis.strokeColor = 'black';
 
-			thirdPoint = new Point();
-			thirdPoint.x = yAxisCenter.x - (point.x - yAxisCenter.x);
-			thirdPoint.y = xAxisCenter.y  + (xAxisCenter.y - point.y);
-			thirdPath.add(thirdPoint);
+	gridRect = new Rectangle(yAxisTop, new Size(200, 200));
 
-			fourthPoint = new Point();
-			fourthPoint.x = point.x;
-			fourthPoint.y = thirdPoint.y;
-			fourthPath.add(fourthPoint);
-		}
+	//add starting point to myPath
+	myPath.add(yAxisCenter);
 
-		myPath.add(yAxisCenter);
+	//Add mirroring paths
+	firstPath = new Path();
+	thirdPath = new Path();
+	fourthPath = new Path();
 
-		var myPathCopy = new Path();
-		myPathCopy.add(yAxisCenter);
-		// This function is called whenever the user
-		// clicks the mouse in the view:
-		function onMouseDown(event) {
-			// Add a segment to the path at the position of the mouse:
+	firstPath.add(yAxisCenter);
+	thirdPath.add(new Point(300,400));
+	fourthPath.add(new Point(300, 400));
 
+	firstPath.strokeColor = 'black';
+	thirdPath.strokeColor = 'black';
+	fourthPath.strokeColor = 'black';
+}
 
-			if(event.point.isInside(buttonRect)){
-				console.log("button pressed");
-				myPath.add(xAxisCenter);
-				mirrorPath(xAxisCenter);
-			}
-			else if(event.point.isInside(gridRect)) {
-				myPath.add(event.point);
-				mirrorPath(event.point);
-			}
-		}
+var mirrorPath = function(point) {
+	//mirror the point in the first, third and fourth qadrant
+	var firstPoint = new Point();
+	firstPoint.x = yAxisCenter.x - (point.x - yAxisCenter.x);
+	firstPoint.y = xAxisCenter.y + (point.y - xAxisCenter.y);	
+	firstPath.add(firstPoint);
+
+	var thirdPoint = new Point();
+	thirdPoint.x = yAxisCenter.x - (point.x - yAxisCenter.x);
+	thirdPoint.y = xAxisCenter.y  + (xAxisCenter.y - point.y);
+	thirdPath.add(thirdPoint);
+
+	var fourthPoint = new Point();
+	fourthPoint.x = point.x;
+	fourthPoint.y = thirdPoint.y;
+	fourthPath.add(fourthPoint);
+}
+
+function onMouseDown(event) {
+	// Add a segment to the path at the position of the mouse:
+	if(event.point.isInside(buttonRect)){
+		console.log("button pressed");
+		myPath.add(xAxisCenter);
+		mirrorPath(xAxisCenter);
+	}
+	else if(event.point.isInside(gridRect)) {
+		myPath.add(event.point);
+		mirrorPath(event.point);
+	}
+}
+
+init();

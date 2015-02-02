@@ -73,6 +73,4 @@
 				myPath.add(event.point);
 				mirrorPath(event.point);
 			}
-
-			console.log(myPath.exportSVG());
 		}

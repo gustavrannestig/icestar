@@ -95,6 +95,18 @@ window.onload = function() {
 			console.log("button pressed");
 			myPath.add(xAxisCenter);
 			mirrorPath(xAxisCenter);
+
+			fourthPath.reverse()
+			firstPath.reverse()
+
+			var newPath = new paper.Path(myPath.segments);
+			newPath.addSegments(fourthPath.segments);
+			newPath.addSegments(thirdPath.segments);
+			newPath.addSegments(firstPath.segments);
+			newPath.closed = true;
+
+			newPath.strokeColor = 'red';
+
 		}
 		else if(event.point.isInside(gridRect)) {
 			myPath.add(event.point);

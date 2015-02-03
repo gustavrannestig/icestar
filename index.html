@@ -2,22 +2,29 @@
 <head>
 	<script type="text/javascript" src="libs/paper-full.js"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.js"></script>
+	<link rel="stylesheet" href="css/style.css"></link>
 	
 </head>
 <body>
-<button onclick="renderShape()">Render shape</button>
-<input type="radio" name="planes" onchange="renderShape()" checked="checked" value="1">1
-<input type="radio" name="planes" onchange="renderShape()" value="2">2
-<input type="radio" name="planes" onchange="renderShape()" value="3">3
-<input type="radio" name="planes" onchange="renderShape()" value="4">4
-<input type="radio" name="planes" onchange="renderShape()" value="5">5
-<input type="radio" name="planes" onchange="renderShape()" value="6">6
-<input type="radio" name="planes" onchange="renderShape()" value="7">7
+<div class="main-wrapper">
+	<div class="button-group">
+		<button onclick="renderShape()">Render shape</button>
+		<input type="radio" name="planes" onchange="renderShape()" checked="checked" value="1">1
+		<input type="radio" name="planes" onchange="renderShape()" value="2">2
+		<input type="radio" name="planes" onchange="renderShape()" value="3">3
+		<input type="radio" name="planes" onchange="renderShape()" value="4">4
+		<input type="radio" name="planes" onchange="renderShape()" value="5">5
+		<input type="radio" name="planes" onchange="renderShape()" value="6">6
+		<input type="radio" name="planes" onchange="renderShape()" value="7">7
+		<label for="autoRender">Auto Render</label>
+		<input type="checkbox" name="autoRender"/>
+	</div>
 
-<div class="paper-container">
-	<canvas id="paperCanvas"></canvas>
-</div>
-<div class="three-container" id="threeContainer">
+	<div class="paper-container">
+		<canvas id="paperCanvas"></canvas>
+	</div>
+	<div class="three-container" id="threeContainer">
+	</div>
 </div>
 <script src="libs/TrackballControls.js"></script>
 <script type="text/javascript">
@@ -43,19 +50,19 @@ var init = function() {
 	myPath = new paper.Path();
 	myPath.strokeColor = 'black';
 
-	var infoText = new paper.PointText(new paper.Point(400,200));
+	var infoText = new paper.PointText(new paper.Point(300,100));
 	infoText.justification = 'center';
 	infoText.fillColor = 'black';
 	infoText.content = 'draw by clicking here';
 
 
 	//init simple grid
-	center = new paper.Point(300,300);
-	yAxisCenter = new paper.Point(300,200);
-	yAxisTop = new paper.Point(300, 100);
-	xAxisCenter = new paper.Point(400, 300);
-	origo = new paper.Point(300,300);
-	xAxisRight = new paper.Point(500, 300);
+	center = new paper.Point(200,200);
+	yAxisCenter = new paper.Point(200,100);
+	yAxisTop = new paper.Point(200, 0);
+	xAxisCenter = new paper.Point(300, 200);
+	origo = new paper.Point(200,200);
+	xAxisRight = new paper.Point(400, 200);
 
 	//make the axis paths
 	var yAxis = new paper.Path();
@@ -82,8 +89,8 @@ var init = function() {
 	fourthPath = new paper.Path();
 
 	firstPath.add(yAxisCenter);
-	thirdPath.add(new paper.Point(300,400));
-	fourthPath.add(new paper.Point(300, 400));
+	thirdPath.add(new paper.Point(200,300));
+	fourthPath.add(new paper.Point(200, 300));
 
 	firstPath.strokeColor = 'black';
 	thirdPath.strokeColor = 'black';
@@ -105,10 +112,10 @@ var init = function() {
 	//Init three.js scene
 	function initThree() {
 		scene = new THREE.Scene();
-		camera = new THREE.PerspectiveCamera(75, 500/500, 0.1, 1000 ) //Scene size absolute(500 500)
+		camera = new THREE.PerspectiveCamera(75, 396/396, 0.1, 1000 ) //Scene size absolute(500 500)
 		camera.position.z = 100;
 		renderer = new THREE.WebGLRenderer({ alpha: true });
-		renderer.setSize(500,500);
+		renderer.setSize(396,396);
 		renderer.setClearColor(0x333F47, 1);
 
 		//Some random lights.
@@ -291,6 +298,11 @@ window.onload = function() {
 			mirrorPath(event.point);
 		}
 		paper.view.draw();
+
+		var autoRender = document.getElementsByName('autoRender')[0].checked;
+		if (autoRender) {
+			renderShape();
+		}
 	}
 
 	tool.onMouseMove =function onMouseMove(event) {

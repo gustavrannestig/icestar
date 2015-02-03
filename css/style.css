@@ -1,0 +1,49 @@
+body {
+	background-color: grey;
+}
+
+.main-wrapper {
+	width: 100%;
+	padding: 25px 25px 25px 25px;
+}
+
+.paper-container {
+	float: left;
+	width: 50%;
+}
+
+.paper-container canvas {
+	width: 396px;
+	height: 396px;
+	float: right;
+	border: 2px solid black;
+	background-color: white;
+}
+
+.three-container {
+	float: left;
+	width: 50%;
+}
+
+.three-container canvas {
+	width: 396px;
+	height: 396px;
+	float: left;
+	border: 2px solid black;
+	background-color: white;
+}
+
+.button-group {
+	margin: 0 auto;
+	width: 800px;
+	text-align: center;
+	margin-bottom: 20px;
+}
+
+.button-group button {
+
+}
+
+.button-group input {
+
+}

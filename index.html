@@ -42,7 +42,7 @@ var fourthPath;
 var buttonRect;
 var gridRect;
 
-var scene, camera, renderer, controls, group;
+var scene, camera, renderer, controls, group, subGroup;
 
 //Main initializing function - should set up paper canvas and three js scene.
 var init = function() {
@@ -130,6 +130,8 @@ var init = function() {
 		light = new THREE.AmbientLight( 0x222222 );
 		scene.add( light );
 
+		group = new THREE.Object3D();
+		scene.add(group);
 		//Add controls to scene - These are trackball controls. 
 		controls = new THREE.TrackballControls( camera );
 		controls.addEventListener( 'change', render );
@@ -189,8 +191,8 @@ var addShape = function( shape, extrudeSettings, color, planes) {
 	geometry.center();
 
 	//Remove and add the group.
-	scene.remove(group);
-	group = new THREE.Object3D();
+	group.remove(subGroup);
+	subGroup = new THREE.Object3D();
 
 	var material = new THREE.MeshLambertMaterial({color: color});
 	var shape = new THREE.Mesh( geometry, material);
@@ -207,29 +209,29 @@ var addShape = function( shape, extrudeSettings, color, planes) {
 	shape6.rotation.y += (Math.PI *(3/4));
 	shape7.rotation.x += (Math.PI * (3/4));
 
-	group.add( shape );
+	subGroup.add( shape );
 
 	//switch for number of planes.
 	if(planes > 1) {
-		group.add( shape2 );
+		subGroup.add( shape2 );
 	}
 	if(planes > 2) {
-		group.add( shape3 );
+		subGroup.add( shape3 );
 	}
 	if (planes > 3) {
-		group.add( shape4 );
+		subGroup.add( shape4 );
 	}
 	if (planes > 4) {
-		group.add(shape5);
+		subGroup.add(shape5);
 	} 
 	if (planes > 5) {
-		group.add(shape6);
+		subGroup.add(shape6);
 	}
 	if (planes > 6) {
-		group.add(shape7);
+		subGroup.add(shape7);
 	}
 
-	scene.add(group);
+	group.add(subGroup);
 	renderer.render(scene, camera);
 }
 

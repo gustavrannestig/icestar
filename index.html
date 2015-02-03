@@ -5,10 +5,17 @@
 	
 </head>
 <body>
+<button onclick="renderShape()">Render shape</button>
+<input type="radio" name="planes" onchange="renderShape()" checked="checked" value="1">1
+<input type="radio" name="planes" onchange="renderShape()" value="2">2
+<input type="radio" name="planes" onchange="renderShape()" value="3">3
+<input type="radio" name="planes" onchange="renderShape()" value="4">4
+<input type="radio" name="planes" onchange="renderShape()" value="5">5
+<input type="radio" name="planes" onchange="renderShape()" value="6">6
+<input type="radio" name="planes" onchange="renderShape()" value="7">7
 <canvas id="paperCanvas"></canvas>
 <script src="libs/TrackballControls.js"></script>
 <script type="text/javascript">
-
 var yAxisCenter;
 var xAxisCenter;
 var center;
@@ -23,7 +30,7 @@ var fourthPath;
 var buttonRect;
 var gridRect;
 
-var scene, camera, renderer, controls;
+var scene, camera, renderer, controls, group;
 
 //Main initializing function - should set up paper canvas and three js scene.
 var init = function() {
@@ -31,31 +38,18 @@ var init = function() {
 	myPath = new paper.Path();
 	myPath.strokeColor = 'black';
 
-	//init render button
-	var buttonPosition = new paper.Point(40,20);
-	var buttonSize = new paper.Size(100, 30);
-	var button = new paper.Path.Rectangle(buttonPosition, buttonSize);
-
-	var text = new paper.PointText(new paper.Point(90, 35));
-	text.justification = 'center';
-	text.fillColor = 'black';
-	text.content = 'Generate shape';
-
 	var infoText = new paper.PointText(new paper.Point(400,200));
 	infoText.justification = 'center';
 	infoText.fillColor = 'black';
 	infoText.content = 'draw by clicking here';
 
 
-
-	button.strokeColor = 'black';
-	buttonRect = new paper.Rectangle(buttonPosition, buttonSize);
-
 	//init simple grid
 	center = new paper.Point(300,300);
 	yAxisCenter = new paper.Point(300,200);
 	yAxisTop = new paper.Point(300, 100);
 	xAxisCenter = new paper.Point(400, 300);
+	origo = new paper.Point(300,300);
 	xAxisRight = new paper.Point(500, 300);
 
 	//make the axis paths
@@ -159,7 +153,7 @@ var mirrorPath = function(point) {
 }
 
 //Make shape from an array of segments(Points.)
-var makeShape = function(segments) {
+var makeShape = function(segments, planes) {
 
 	var shapePts = [];
 
@@ -169,23 +163,22 @@ var makeShape = function(segments) {
 	}
 
 	for( var i = 0; i < shapePts.length; i ++ ) shapePts[ i ].multiplyScalar( 0.25 );
-
 	var shape = new THREE.Shape( shapePts);
-
 	var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
-
-	addShape( shape,  extrudeSettings);
-
+	addShape( shape,  extrudeSettings, 0xFFFFFF, planes);
 }
 
 //Add shape - with additional shapes to it. in the three.js scene.
-var addShape = function( shape, extrudeSettings, color) {
+var addShape = function( shape, extrudeSettings, color, planes) {
 
 	var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
 	geometry.center();
 
-	var material = new THREE.MeshLambertMaterial({color: 0xFFFFFF});
-	var group = new THREE.Object3D();
+	//Remove and add the group.
+	scene.remove(group);
+	group = new THREE.Object3D();
+
+	var material = new THREE.MeshLambertMaterial({color: color});
 	var shape = new THREE.Mesh( geometry, material);
 	var shape2 = new THREE.Mesh( geometry, material);
 	var shape3 = new THREE.Mesh( geometry, material);
@@ -199,17 +192,64 @@ var addShape = function( shape, extrudeSettings, color) {
 	shape5.rotation.x += (Math.PI/4);
 	shape6.rotation.y += (Math.PI *(3/4));
 	shape7.rotation.x += (Math.PI * (3/4));
-	group.add(shape7);
-	group.add(shape6);
-	group.add(shape5);
-	group.add(shape4);
-	group.add( shape3 );
-	group.add( shape2);
+
 	group.add( shape );
+
+	//switch for number of planes.
+	if(planes > 1) {
+		group.add( shape2 );
+	}
+	if(planes > 2) {
+		group.add( shape3 );
+	}
+	if (planes > 3) {
+		group.add( shape4 );
+	}
+	if (planes > 4) {
+		group.add(shape5);
+	} 
+	if (planes > 5) {
+		group.add(shape6);
+	}
+	if (planes > 6) {
+		group.add(shape7);
+	}
+
 	scene.add(group);
 	renderer.render(scene, camera);
 }
 
+
+var renderShape = function() {
+
+	var newPath = new paper.Path(myPath.segments);
+	var tempFourth = new paper.Path(fourthPath.segments);
+	var tempThird = new paper.Path(thirdPath.segments);
+	var tempFirst = new paper.Path(firstPath.segments);
+
+	tempFourth.reverse()
+	tempFirst.reverse()
+	newPath.join(tempFourth);
+	newPath.join(tempThird);
+	newPath.join(tempFirst);
+	newPath.closed = true;
+
+	newPath.strokeColor = 'red';
+
+	//Get number of planes - plain js to avoid having to import for ex jquery.
+	var radios = document.getElementsByName('planes');
+
+	for (var i = 0, length = radios.length; i < length; i++) {
+	    if (radios[i].checked) {
+	        planes = parseInt(radios[i].value);
+	        break;
+	    }
+	}
+
+	makeShape(newPath.segments, planes);
+	paper.view.draw();
+	newPath.remove();
+}
 
 window.onload = function() {
 	var paperCanvas = document.getElementById('paperCanvas');
@@ -218,39 +258,41 @@ window.onload = function() {
 	paper.setup('paperCanvas');
 	
 	init();
-
+	
 	var tool = new paper.Tool();
-
+	var tooldistanceThreshold = 2;
 	//Register mousedown tool for the paper canvas.
 	tool.onMouseDown = function onMouseDown(event) {
 
-		//If the little button is pressed we add an object. in the three.js scene.
-		if(event.point.isInside(buttonRect)){
 
-			//Connect all the paths at center of axis.
-			myPath.add(xAxisCenter);
-			mirrorPath(xAxisCenter);
+		if(event.point.x < (origo.x + 2) && event.point.x > (origo.x - 2) && event.point.y > (yAxisTop.y - 2) && event.point.y < (origo.y + 2)) {
+			myPath.segments = myPath.segments.slice(1);
+			myPath.insert(0,new paper.Point(origo.x, event.point.y ));
 
-			fourthPath.reverse()
-			firstPath.reverse()
+			firstPath.segments = firstPath.segments.slice(1);
+			firstPath.insert(0, new paper.Point(origo.x, event.point.y));
 
-			var newPath = new paper.Path(myPath.segments);
-			//Slice to avoid duplicate points. 
-			newPath.addSegments(fourthPath.segments.slice(1));
-			newPath.addSegments(thirdPath.segments.slice(1));
-			newPath.addSegments(firstPath.segments.slice(1));
-			newPath.closed = true;
-
-			newPath.strokeColor = 'red';
-
-			makeShape(newPath.segments);
+			thirdPath.segments = thirdPath.segments.slice(1);
+			thirdPath.insert(0, new paper.Point(origo.x, (origo.y + (origo.y - event.point.y ))));
+			fourthPath.segments = fourthPath.segments.slice(1);
+			fourthPath.insert(0, new paper.Point(origo.x, (origo.y + (origo.y - event.point.y ))));
 
 		}
-
 		// Add a segment to the path at the position of the mouse:
 		else if(event.point.isInside(gridRect)) {
 			myPath.add(event.point);
 			mirrorPath(event.point);
+		}
+		paper.view.draw();
+	}
+
+	tool.onMouseMove =function onMouseMove(event) {
+
+		if(event.point.x < (origo.x + 2) && event.point.x > (origo.x - 2) && event.point.y > (yAxisTop.y - 2) && event.point.y < (origo.y + 2)) {
+			var point = new paper.Point(origo.x, event.point.y);
+			var yAxisCircle = new paper.Shape.Circle(point, 5);
+			yAxisCircle.strokeColor = 'black';
+			yAxisCircle.removeOnMove();
 		}
 		paper.view.draw();
 	}

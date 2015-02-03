@@ -127,7 +127,7 @@ var init = function() {
 		controls = new THREE.TrackballControls( camera );
 		controls.addEventListener( 'change', render );
 
-		threeContainer = document.getElementByID('threeContainer');
+		threeContainer = document.getElementById('threeContainer');
 
 		threeContainer.appendChild( renderer.domElement );
 

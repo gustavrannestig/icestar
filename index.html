@@ -13,7 +13,12 @@
 <input type="radio" name="planes" onchange="renderShape()" value="5">5
 <input type="radio" name="planes" onchange="renderShape()" value="6">6
 <input type="radio" name="planes" onchange="renderShape()" value="7">7
-<canvas id="paperCanvas"></canvas>
+
+<div class="paper-container">
+	<canvas id="paperCanvas"></canvas>
+</div>
+<div class="three-container" id="threeContainer">
+</div>
 <script src="libs/TrackballControls.js"></script>
 <script type="text/javascript">
 var yAxisCenter;
@@ -122,7 +127,9 @@ var init = function() {
 		controls = new THREE.TrackballControls( camera );
 		controls.addEventListener( 'change', render );
 
-		document.body.appendChild( renderer.domElement );
+		threeContainer = document.getElementByID('threeContainer');
+
+		threeContainer.appendChild( renderer.domElement );
 
 		animate();
 	}

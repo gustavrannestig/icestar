@@ -10,12 +10,12 @@
 	<div class="button-group">
 		<button onclick="renderShape()">Render shape</button>
 		<input type="radio" name="planes" onchange="renderShape()" checked="checked" value="1">1
-		<input type="radio" name="planes" onchange="renderShape()" value="2">2
 		<input type="radio" name="planes" onchange="renderShape()" value="3">3
-		<input type="radio" name="planes" onchange="renderShape()" value="4">4
 		<input type="radio" name="planes" onchange="renderShape()" value="5">5
-		<input type="radio" name="planes" onchange="renderShape()" value="6">6
 		<input type="radio" name="planes" onchange="renderShape()" value="7">7
+		<input type="radio" name="planes" onchange="renderShape()" value="9">9
+		<input type="radio" name="planes" onchange="renderShape()" value="11">11
+		<input type="radio" name="planes" onchange="renderShape()" value="13">13
 		<label for="autoRender">Auto Render</label>
 		<input type="checkbox" name="autoRender"/>
 	</div>
@@ -42,7 +42,7 @@ var fourthPath;
 var buttonRect;
 var gridRect;
 
-var scene, camera, renderer, controls, group, subGroup;
+var scene, camera, renderer, controls, group, subGroup, threeContainer, threeCanvas;
 
 var targetRotationX = 0;
 var targetRotationOnMouseDownX = 0;
@@ -155,9 +155,11 @@ var init = function() {
 
 		threeContainer.appendChild( renderer.domElement );
 
-		document.addEventListener( 'mousedown', onDocumentMouseDown, false );
-        document.addEventListener( 'touchstart', onDocumentTouchStart, false );
-        document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+		threeCanvas = threeContainer.getElementsByTagName('canvas')[0]; 
+
+		threeCanvas.addEventListener( 'mousedown', onDocumentMouseDown, false );
+        threeCanvas.addEventListener( 'touchstart', onDocumentTouchStart, false );
+        threeCanvas.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
 		animate();
 	}
@@ -194,9 +196,9 @@ function onDocumentMouseDown( event ) {
  
     event.preventDefault();
 
-    document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-    document.addEventListener( 'mouseup', onDocumentMouseUp, false );
-    document.addEventListener( 'mouseout', onDocumentMouseOut, false );
+    threeCanvas.addEventListener( 'mousemove', onDocumentMouseMove, false );
+    threeCanvas.addEventListener( 'mouseup', onDocumentMouseUp, false );
+    threeCanvas.addEventListener( 'mouseout', onDocumentMouseOut, false );
 
     mouseXOnMouseDown = event.clientX - windowHalfX;
     targetRotationOnMouseDownX = targetRotationX;
@@ -218,17 +220,17 @@ function onDocumentMouseMove( event ) {
  
 function onDocumentMouseUp( event ) {
  
-    document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
-    document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
-    document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
+    threeCanvas.removeEventListener( 'mousemove', onDocumentMouseMove, false );
+    threeCanvas.removeEventListener( 'mouseup', onDocumentMouseUp, false );
+    threeCanvas.removeEventListener( 'mouseout', onDocumentMouseOut, false );
  
 }
  
 function onDocumentMouseOut( event ) {
  
-    document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
-    document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
-    document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
+    threeCanvas.removeEventListener( 'mousemove', onDocumentMouseMove, false );
+    threeCanvas.removeEventListener( 'mouseup', onDocumentMouseUp, false );
+    threeCanvas.removeEventListener( 'mouseout', onDocumentMouseOut, false );
  
 }
  
@@ -317,39 +319,15 @@ var addShape = function( shape, extrudeSettings, color, planes) {
 
 	var material = new THREE.MeshLambertMaterial({color: color});
 	var shape = new THREE.Mesh( geometry, material);
-	var shape2 = new THREE.Mesh( geometry, material);
-	var shape3 = new THREE.Mesh( geometry, material);
-	var shape4 = new THREE.Mesh( geometry, material);
-	var shape5 = new THREE.Mesh( geometry, material);
-	var shape6 = new THREE.Mesh( geometry, material);
-	var shape7 = new THREE.Mesh( geometry, material);
-	shape2.rotation.y += (Math.PI/2);
-	shape3.rotation.x += (Math.PI/2);
-	shape4.rotation.y += (Math.PI/4);
-	shape5.rotation.x += (Math.PI/4);
-	shape6.rotation.y += (Math.PI *(3/4));
-	shape7.rotation.x += (Math.PI * (3/4));
+	planes = planes + 1;
 
-	subGroup.add( shape );
-
-	//switch for number of planes.
-	if(planes > 1) {
-		subGroup.add( shape2 );
-	}
-	if(planes > 2) {
-		subGroup.add( shape3 );
-	}
-	if (planes > 3) {
-		subGroup.add( shape4 );
-	}
-	if (planes > 4) {
-		subGroup.add(shape5);
-	} 
-	if (planes > 5) {
-		subGroup.add(shape6);
-	}
-	if (planes > 6) {
-		subGroup.add(shape7);
+	for(var i=0; i <= (planes/2); i++) {
+		var shapeX = new THREE.Mesh( geometry, material);
+		var shapeY = new THREE.Mesh( geometry, material);
+		shapeX.rotation.x += (Math.PI*(i/(planes/2)));
+		shapeY.rotation.y += (Math.PI*(i/(planes/2)));
+		subGroup.add( shapeX );
+		subGroup.add( shapeY )
 	}
 
 	group.add(subGroup);

@@ -40,6 +40,37 @@
 		
 	</div>
 </div>
+<script type="x-shader/x-vertex" id="snow-vertex-shader">
+	uniform float radiusX;
+	uniform float radiusZ;
+	uniform float size;
+	uniform float scale;
+	uniform float height;
+	uniform float elapsedTime;
+
+	void main() {
+		vec3 pos = position;
+		pos.x += cos((elapsedTime + position.z) * 0.25) * radiusX;
+		pos.y = mod(pos.y - elapsedTime, height);
+		pos.z += sin((elapsedTime + position.x) * 0.25) * radiusZ;
+		
+		vec4 mvPosition = modelViewMatrix * vec4( pos, 1.0);
+		gl_PointSize = size * ( scale / length( mvPosition.xyz));
+
+		gl_Position = projectionMatrix * mvPosition;
+	}
+</script>
+<script type="x-shader/x-fragment" id="snow-fragment-shader">
+	uniform vec3 color;
+	uniform float opacity;
+	uniform sampler2D texture;
+
+	void main() {
+		vec4 texColor = texture2D( texture, gl_PointCoord );
+        gl_FragColor = texColor * vec4( color, opacity );
+	}
+</script>
+
 <script type="text/javascript">
 
 //Paper vars
@@ -66,7 +97,13 @@ var group
 var subGroup
 var threeContainer
 var threeCanvas
-var skyboxTexture;
+var skyboxTexture
+
+var textureFolder = "/skybox";
+
+var particleSystem
+var particleSystemHeight = 100.0;
+var clock
 
 var targetRotationX = 0;
 var targetRotationOnMouseDownX = 0;
@@ -103,7 +140,7 @@ function showDrawingBoard() {
 ///////////////////////////////////////////*/
 function createSkyBox() {
 	var textureURLs = [];
-	var textureFolder = "/skybox";
+	
 	textureURLs.push(textureFolder + "/negx.png");
 	textureURLs.push(textureFolder + "/posx.png");	
 	textureURLs.push(textureFolder + "/posy.png");
@@ -127,9 +164,68 @@ function createSkyBox() {
 	scene.add(skybox);
 }
 
+function makeSnow() {
+	//Make particle system
+	texture = THREE.ImageUtils.loadTexture( textureFolder +'/snowflake1.png' );
+
+	var numParticles = 10000,
+		width = 1000,
+		height = particleSystemHeight,
+		depth = 1000,
+		parameters = {
+			color: 0xFFFFFF,
+			height: particleSystemHeight,
+			radiusX: 2.5,
+			radiusZ: 2.5,
+			size: 100,
+			scale: 5.0,
+			opacity: 0.7
+		},
+		systemGeometry = new THREE.Geometry();
+		systemMaterial = new THREE.ShaderMaterial({
+			uniforms: {
+				color:  { type: 'c', value: new THREE.Color( parameters.color ) },
+				height: { type: 'f', value: parameters.height },
+				elapsedTime: { type: 'f', value: 0 },
+				radiusX: { type: 'f', value: parameters.radiusX },
+				radiusZ: { type: 'f', value: parameters.radiusZ },
+				size: { type: 'f', value: parameters.size },
+				scale: { type: 'f', value: parameters.scale },
+				opacity: { type: 'f', value: parameters.opacity },
+				texture: { type: 't', value: texture }
+			},
+			vertexShader: document.getElementById("snow-vertex-shader").textContent,
+			fragmentShader: document.getElementById("snow-fragment-shader").textContent,
+			blending: THREE.AdditiveBlending,
+			transparent: true,
+			depthTest: false
+		});
+
+	for(var i = 0; i < numParticles; i++) {
+		var vertex = new THREE.Vector3(
+				rand( width ),
+				Math.random() * height,
+				rand( depth )
+			);
+		systemGeometry.vertices.push( vertex );
+	}
+
+	particleSystem = new THREE.ParticleSystem( systemGeometry, systemMaterial );
+	particleSystem.position.y = -height/2;
+
+	scene.add(particleSystem);
+}
+
 //Animate handler for three
 function animate() {
 	requestAnimationFrame(animate);
+
+	var delta = clock.getDelta(),
+		elapsedTime = clock.getElapsedTime(),
+		t = elapsedTime * 0.5;
+
+	particleSystem.material.uniforms.elapsedTime.value = elapsedTime * 10;
+
 	render();
 }
 
@@ -168,17 +264,6 @@ function initThree() {
 	renderer.setSize(window.innerWidth,window.innerHeight);
 	renderer.setClearColor(0x333F47, 1);
 
-	//Some random lights.
- // 	light = new THREE.DirectionalLight( 0xffffff );
-	// light.position.set( 1, 1, 1 );
-	// scene.add( light );
-
-	// light = new THREE.DirectionalLight( 0xffffff );
-	// light.position.set( -1, -1, -1 );
-	// scene.add( light );
-
-
-
 	light = new THREE.AmbientLight( 0xffffff );
 	scene.add( light );
 
@@ -195,7 +280,9 @@ function initThree() {
     threeCanvas.addEventListener( 'touchstart', onDocumentTouchStart, false );
     threeCanvas.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
+    //Set up the lovely environment.
     createSkyBox();
+    makeSnow();
 
     light = new THREE.DirectionalLight( 0xffffff );
 	light.position.set(-1, 1, 1);
@@ -205,10 +292,16 @@ function initThree() {
 	light.position.set(-1, 1, -1);
 	scene.add(light);
 
+	clock = new THREE.Clock();
+
 	animate();
 
 	window.addEventListener( 'resize', onWindowResize, false );
 }
+
+function rand( v ) {
+		return (v * (Math.random() - 0.5));
+	}
 
 function onWindowResize() {
 
@@ -416,13 +509,17 @@ function addShape( shape, extrudeSettings, color, planes) {
 		var shapeY = new THREE.Mesh( geometry, material);
 		var shapeZ = new THREE.Mesh( geometry, material);
 		//shapeZ.rotation.x += (Math.PI*(i/(planes/2)));
-		//shapeZ.rotation.x += (Math.PI*(i/(planes-i)));
+		// shapeZ.rotation.x += (Math.PI*(i/(planes/2)));
+		// //shapeZ.rotation.y += (Math.PI/16);
+		// shapeZ.rotation.z += (Math.PI*(Math.random()));
 		shapeZ.rotation.z += (Math.PI*(i/(planes/2)));
+		shapeZ.rotation.x += (Math.PI*0.001*i);
+		//shapeZ.rotation.x += (Math.PI*0.005*planes);
 
-		subGroup.add( shapeZ );
+		//subGroup.add( shapeZ );
 
 		// subGroup.add( shapeY );
-		// subGroup.add(shapeX);
+		 subGroup.add(shapeZ);
 	}
 
 	group.add(subGroup);

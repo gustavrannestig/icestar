@@ -140,13 +140,19 @@ function showDrawingBoard() {
 ///////////////////////////////////////////*/
 function createSkyBox() {
 	var textureURLs = [];
-	
-	textureURLs.push(textureFolder + "/negx.png");
-	textureURLs.push(textureFolder + "/posx.png");	
-	textureURLs.push(textureFolder + "/posy.png");
-	textureURLs.push(textureFolder + "/negy.png");
-	textureURLs.push(textureFolder + "/posz.png");
-	textureURLs.push(textureFolder + "/negz.png");
+	textureURLs.push(textureFolder + "/posx.jpg");
+	textureURLs.push(textureFolder + "/negx.jpg");	
+	textureURLs.push(textureFolder + "/posy.jpg");
+	textureURLs.push(textureFolder + "/negy.jpg");
+	textureURLs.push(textureFolder + "/posz.jpg");
+	textureURLs.push(textureFolder + "/negz.jpg");
+
+	// textureURLs.push(textureFolder + "/negx.png");
+	// textureURLs.push(textureFolder + "/posx.png");	
+	// textureURLs.push(textureFolder + "/posy.png");
+	// textureURLs.push(textureFolder + "/negy.png");
+	// textureURLs.push(textureFolder + "/posz.png");
+	// textureURLs.push(textureFolder + "/negz.png");
 	//skyboxTexture = THREE.ImageUtils.loadTextureCube( textureURLs. new THREE.CubeRefractionMapping(), render );
 	skyboxTexture = THREE.ImageUtils.loadTextureCube( textureURLs, THREE.CubeRefractionMapping );
 

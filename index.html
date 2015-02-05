@@ -8,37 +8,36 @@
 	
 </head>
 <body>
-<div class="main-wrapper container">
+<div class="three-container" id="threeContainer">
+</div>
+
+<div class="container-fluid">
 
 	<div class="row controls">
 
 		<div class="col-xs-12 text-center">
 			<div class="btn-group">
-				<button type="button" class="btn btn-default" onclick="renderShape(1)">1</button>
-				<button type="button" class="btn btn-default" onclick="renderShape(3)">3</button>
-				<button type="button" class="btn btn-default" onclick="renderShape(5)">5</button>
-				<button type="button" class="btn btn-default" onclick="renderShape(7)">7</button>
-				<button type="button" class="btn btn-default" onclick="renderShape(9)">9</button>
-				<button type="button" class="btn btn-default" onclick="renderShape(11)">11</button>
-				<button type="button" class="btn btn-default" onclick="renderShape(13)">13</button>
-				<button type="button" class="btn btn-default" onclick="renderShape(15)">15</button>
-				<button type="button" class="btn btn-default" onclick="renderShape(17)">17</button>
-				<button type="button" class="btn btn-default" onclick="renderShape(19)">19</button>
+				<button type="button" class="btn btn-info" onclick="renderShape(1)">1</button>
+				<button type="button" class="btn btn-info" onclick="renderShape(3)">3</button>
+				<button type="button" class="btn btn-info" onclick="renderShape(5)">5</button>
+				<button type="button" class="btn btn-info" onclick="renderShape(7)">7</button>
+				<button type="button" class="btn btn-info" onclick="renderShape(9)">9</button>
+				<button type="button" class="btn btn-info" onclick="renderShape(11)">11</button>
+				<button type="button" class="btn btn-info" onclick="renderShape(13)">13</button>
+				<button type="button" class="btn btn-info" onclick="renderShape(15)">15</button>
+				<button type="button" class="btn btn-info" onclick="renderShape(17)">17</button>
+				<button type="button" class="btn btn-info" onclick="renderShape(19)">19</button>
 			</div>
-			<div class="btn-group">
-				<button class="btn btn-default" id="hideBtn" onclick="hideDrawingBoard()">Hide drawing board</button>
-				<button class="btn btn-default hidden" id="showBtn" onclick="showDrawingBoard()">Show drawing board</button>
-			</div> 
+				<button class="btn btn-primary" id="hideBtn" onclick="hideDrawingBoard()">Hide drawing board</button>
+				<button class="btn btn-success hidden" id="showBtn" onclick="showDrawingBoard()">Show drawing board</button>
 		</div>
 	</div>
 
-	</div> -->
 	<div class="row">
 		<div class="paper-container col-xs-12 text-center" id="paperContainer">
 			<canvas id="paperCanvas"></canvas>
 		</div>
-		<div class="three-container col-xs-12 text-center" id="threeContainer">
-		</div>
+		
 	</div>
 </div>
 <script type="text/javascript">
@@ -89,13 +88,13 @@ var finalRotationY
 function hideDrawingBoard() {
 	document.getElementById('paperContainer').className += " hidden";
 	document.getElementById('hideBtn').className += " hidden";
-	document.getElementById('showBtn').className = "btn btn-default"
+	document.getElementById('showBtn').className = "btn btn-success"
 }
 
 function showDrawingBoard() {
 	document.getElementById('paperContainer').className = "paper-container col-xs-12 text-center";
 	document.getElementById('showBtn').className += " hidden";
-	document.getElementById('hideBtn').className = "btn btn-default";
+	document.getElementById('hideBtn').className = "btn btn-primary";
 }
 
 
@@ -105,8 +104,8 @@ function showDrawingBoard() {
 function createSkyBox() {
 	var textureURLs = [];
 	var textureFolder = "/skybox";
-	textureURLs.push(textureFolder + "/posx.png");
 	textureURLs.push(textureFolder + "/negx.png");
+	textureURLs.push(textureFolder + "/posx.png");	
 	textureURLs.push(textureFolder + "/posy.png");
 	textureURLs.push(textureFolder + "/negy.png");
 	textureURLs.push(textureFolder + "/posz.png");
@@ -160,20 +159,24 @@ function render() {
 //Init three.js scene
 function initThree() {
 	scene = new THREE.Scene();
-	camera = new THREE.PerspectiveCamera(75, 792/792, 0.1, 1000 ) //Scene size absolute(500 500)
+	camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000 ) //Scene size absolute(500 500)
 	camera.position.z = 100;
+
+	cameraCube = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 100000 );
+
 	renderer = new THREE.WebGLRenderer({ alpha: true });
-	renderer.setSize(792,792);
+	renderer.setSize(window.innerWidth,window.innerHeight);
 	renderer.setClearColor(0x333F47, 1);
 
 	//Some random lights.
- 	light = new THREE.DirectionalLight( 0xffffff );
-	light.position.set( 1, 1, 1 );
-	scene.add( light );
+ // 	light = new THREE.DirectionalLight( 0xffffff );
+	// light.position.set( 1, 1, 1 );
+	// scene.add( light );
 
-	light = new THREE.DirectionalLight( 0xffffff );
-	light.position.set( -1, -1, -1 );
-	scene.add( light );
+	// light = new THREE.DirectionalLight( 0xffffff );
+	// light.position.set( -1, -1, -1 );
+	// scene.add( light );
+
 
 
 	light = new THREE.AmbientLight( 0xffffff );
@@ -194,7 +197,32 @@ function initThree() {
 
     createSkyBox();
 
+    light = new THREE.DirectionalLight( 0xffffff );
+	light.position.set(-1, 1, 1);
+	scene.add(light);
+
+	light = new THREE.DirectionalLight( 0xffffff );
+	light.position.set(-1, 1, -1);
+	scene.add(light);
+
 	animate();
+
+	window.addEventListener( 'resize', onWindowResize, false );
+}
+
+function onWindowResize() {
+
+	windowHalfX = window.innerWidth / 2,
+	windowHalfY = window.innerHeight / 2,
+
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+
+	cameraCube.aspect = window.innerWidth / window.innerHeight;
+	cameraCube.updateProjectionMatrix();
+
+	renderer.setSize( window.innerWidth, window.innerHeight );
+
 }
 
 /*/////////////////////////////////////////////*/

@@ -2,33 +2,45 @@ body {
 	background-color: grey;
 }
 
+.controls {
+	margin-bottom: 40px;
+
+}
+
+.btn-group p {
+	float: left;
+	line-height: 34px;
+	padding-right: 10px;
+}
+
 .main-wrapper {
 	width: 100%;
 	padding: 25px 25px 25px 25px;
 }
 
 .paper-container {
-	float: left;
-	width: 50%;
+	/*float: left;*/
+	width: 100%;
+	margin-bottom: 40px;
 }
 
 .paper-container canvas {
-	width: 396px;
-	height: 396px;
-	float: right;
+	width: 792px;
+	height: 792px;
+	/*float: right;*/
 	border: 2px solid black;
 	background-color: white;
 }
 
 .three-container {
-	float: left;
-	width: 50%;
+	/*float: left;*/
+	width: 100%;
 }
 
 .three-container canvas {
-	width: 396px;
-	height: 396px;
-	float: left;
+	width: 792px;
+	height: 792px;
+	/*float: left;*/
 	border: 2px solid black;
 	background-color: white;
 }

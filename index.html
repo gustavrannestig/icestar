@@ -2,12 +2,43 @@
 <head>
 	<script type="text/javascript" src="libs/paper-full.js"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.js"></script>
+	<script type="text/javascript" src="libs/csg.js"></script>
+	<script type="text/javascript" src="libs/ThreeCSG.js"></script>
+	
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css"></link>
 	<link rel="stylesheet" href="css/style.css"></link>
 	
 </head>
 <body>
-<div class="main-wrapper">
-	<div class="button-group">
+<div class="main-wrapper container">
+
+	<div class="row controls">
+
+		<div class="col-xs-12 text-center">
+			<div class="btn-group">
+				<button type="button" class="btn btn-default" onclick="renderShape(1)">1</button>
+				<button type="button" class="btn btn-default" onclick="renderShape(3)">3</button>
+				<button type="button" class="btn btn-default" onclick="renderShape(5)">5</button>
+				<button type="button" class="btn btn-default" onclick="renderShape(7)">7</button>
+				<button type="button" class="btn btn-default" onclick="renderShape(9)">9</button>
+				<button type="button" class="btn btn-default" onclick="renderShape(11)">11</button>
+				<button type="button" class="btn btn-default" onclick="renderShape(13)">13</button>
+				<button type="button" class="btn btn-default" onclick="renderShape(15)">15</button>
+				<button type="button" class="btn btn-default" onclick="renderShape(17)">17</button>
+				<button type="button" class="btn btn-default" onclick="renderShape(19)">19</button>
+			</div>
+			<div class="btn-group">
+				<button class="btn btn-default" id="hideBtn" onclick="hideDrawingBoard()">Hide drawing board</button>
+				<button class="btn btn-default hidden" id="showBtn" onclick="showDrawingBoard()">Show drawing board</button>
+			</div> 
+		</div>
+	</div>
+
+
+
+<!-- 	<div class="button-group">
+
+
 		<button onclick="renderShape()">Render shape</button>
 		<input type="radio" name="planes" onchange="renderShape()" checked="checked" value="1">1
 		<input type="radio" name="planes" onchange="renderShape()" value="3">3
@@ -16,18 +47,24 @@
 		<input type="radio" name="planes" onchange="renderShape()" value="9">9
 		<input type="radio" name="planes" onchange="renderShape()" value="11">11
 		<input type="radio" name="planes" onchange="renderShape()" value="13">13
+		<input type="radio" name="planes" onchange="renderShape()" value="100">100
 		<label for="autoRender">Auto Render</label>
 		<input type="checkbox" name="autoRender"/>
-	</div>
-
-	<div class="paper-container">
-		<canvas id="paperCanvas"></canvas>
-	</div>
-	<div class="three-container" id="threeContainer">
+		<label for="drawHoles">Make holes</labels>
+		<input type="checkbox" name="drawHoles" />
+	</div> -->
+	<div class="row">
+		<div class="paper-container col-xs-12 text-center" id="paperContainer">
+			<canvas id="paperCanvas"></canvas>
+		</div>
+		<div class="three-container col-xs-12 text-center" id="threeContainer">
+		</div>
 	</div>
 </div>
 <script type="text/javascript">
-var yAxisCenter;
+
+//Paper vars
+var yAxisCenter; 
 var xAxisCenter;
 var center;
 var xAxisRight
@@ -38,10 +75,19 @@ var firstPath;
 var thirdPath;
 var fourthPath;
 
-var buttonRect;
-var gridRect;
+var gridRect; //Encapsulating the area that is drawable
+//var holes;
 
-var scene, camera, renderer, controls, group, subGroup, threeContainer, threeCanvas;
+//THREE vars
+var currentNoOfPlanes = 1;
+var scene
+var camera
+var renderer
+var group
+var subGroup
+var threeContainer
+var threeCanvas
+var skyboxTexture;
 
 var targetRotationX = 0;
 var targetRotationOnMouseDownX = 0;
@@ -60,132 +106,115 @@ var windowHalfY = window.innerHeight / 2;
  
 var finalRotationY
 
-//Main initializing function - should set up paper canvas and three js scene.
-var init = function() {
-	//The main path
-	myPath = new paper.Path();
-	myPath.strokeColor = 'black';
+function hideDrawingBoard() {
+	document.getElementById('paperContainer').className += " hidden";
+	document.getElementById('hideBtn').className += " hidden";
+	document.getElementById('showBtn').className = "btn btn-default"
+}
 
-	var infoText = new paper.PointText(new paper.Point(300,100));
-	infoText.justification = 'center';
-	infoText.fillColor = 'black';
-	infoText.content = 'draw by clicking here';
+function showDrawingBoard() {
+	document.getElementById('paperContainer').className = "paper-container col-xs-12 text-center";
+	document.getElementById('showBtn').className += " hidden";
+	document.getElementById('hideBtn').className = "btn btn-default";
+}
 
 
-	//init simple grid
-	center = new paper.Point(200,200);
-	yAxisCenter = new paper.Point(200,100);
-	yAxisTop = new paper.Point(200, 0);
-	xAxisCenter = new paper.Point(300, 200);
-	origo = new paper.Point(200,200);
-	xAxisRight = new paper.Point(400, 200);
+/*//////////////////////////////////////////
+//THREE Setup functions
+///////////////////////////////////////////*/
+function createSkyBox() {
+	var textureURLs = [];
+	var textureFolder = window.location.pathname + "/skybox";
+	textureURLs.push(textureFolder + "/posx.png");
+	textureURLs.push(textureFolder + "/negx.png");
+	textureURLs.push(textureFolder + "/posy.png");
+	textureURLs.push(textureFolder + "/negy.png");
+	textureURLs.push(textureFolder + "/posz.png");
+	textureURLs.push(textureFolder + "/negz.png");
+	//skyboxTexture = THREE.ImageUtils.loadTextureCube( textureURLs. new THREE.CubeRefractionMapping(), render );
+	skyboxTexture = THREE.ImageUtils.loadTextureCube( textureURLs, THREE.CubeRefractionMapping );
 
-	//make the axis paths
-	var yAxis = new paper.Path();
-	var xAxis = new paper.Path();
+	var shader = THREE.ShaderLib["cube"];
+	shader.uniforms["tCube"].value = skyboxTexture;
+	var material = new THREE.ShaderMaterial( {
+		fragmentShader: shader.fragmentShader,
+		vertexShader: shader.vertexShader,
+		uniforms: shader.uniforms,
+		depthWrite: false,
+		side: THREE.BackSide
+	});
 
-	yAxis.add(yAxisTop);
-	yAxis.add(center);
+	skybox = new THREE.Mesh( new THREE.CubeGeometry(1000, 1000, 1000), material);
+	scene.add(skybox);
+}
 
-	xAxis.add(xAxisRight);
-	xAxis.add(center);
-
-	yAxis.strokeColor = 'black';
-	xAxis.strokeColor = 'black';
-
-	//make a rect to get a box for detecting clicks inside grid.
-	gridRect = new paper.Rectangle(yAxisTop, new paper.Size(200, 200));
-
-	//add starting point to myPath
-	myPath.add(yAxisCenter);
-
-	//Add mirroring paths
-	firstPath = new paper.Path();
-	thirdPath = new paper.Path();
-	fourthPath = new paper.Path();
-
-	firstPath.add(yAxisCenter);
-	thirdPath.add(new paper.Point(200,300));
-	fourthPath.add(new paper.Point(200, 300));
-
-	firstPath.strokeColor = 'black';
-	thirdPath.strokeColor = 'black';
-	fourthPath.strokeColor = 'black';
-
-	//Draw the view
-	paper.view.draw();
-
-	//init the threejs canvas
-	initThree();
+//Animate handler for three
+function animate() {
+	requestAnimationFrame(animate);
 	render();
+}
 
-	//Animate handler for three
-	function animate() {
-		requestAnimationFrame(animate);
-		render();
+//initial render and render on controls change. 
+function render() {
+
+	//horizontal rotation   
+ 	group.rotation.y += ( targetRotationX - group.rotation.y ) * 0.1;
+
+ 	//vertical rotation 
+ 	finalRotationY = (targetRotationY - group.rotation.x); 
+
+	if (group.rotation.x  <= 1 && group.rotation.x >= -1 ) {
+		group.rotation.x += finalRotationY * 0.1;
+	}
+	if (group.rotation.x  > 1 ) {
+		group.rotation.x = 1
 	}
 
-	//Init three.js scene
-	function initThree() {
-		scene = new THREE.Scene();
-		camera = new THREE.PerspectiveCamera(75, 396/396, 0.1, 1000 ) //Scene size absolute(500 500)
-		camera.position.z = 100;
-		renderer = new THREE.WebGLRenderer({ alpha: true });
-		renderer.setSize(396,396);
-		renderer.setClearColor(0x333F47, 1);
-
-		//Some random lights.
-	 	light = new THREE.DirectionalLight( 0xffffff );
-		light.position.set( 1, 1, 1 );
-		scene.add( light );
-
-		light = new THREE.DirectionalLight( 0xffffff );
-		light.position.set( -1, -1, -1 );
-		scene.add( light );
-
-
-		light = new THREE.AmbientLight( 0x222222 );
-		scene.add( light );
-
-		group = new THREE.Object3D();
-		scene.add(group);
-
-		threeContainer = document.getElementById('threeContainer');
-
-		threeContainer.appendChild( renderer.domElement );
-
-		threeCanvas = threeContainer.getElementsByTagName('canvas')[0]; 
-
-		threeCanvas.addEventListener( 'mousedown', onDocumentMouseDown, false );
-        threeCanvas.addEventListener( 'touchstart', onDocumentTouchStart, false );
-        threeCanvas.addEventListener( 'touchmove', onDocumentTouchMove, false );
-
-		animate();
+	if (group.rotation.x  < -1 ) {
+		group.rotation.x = -1
 	}
 
-	//initial render and render on controls change. 
-	function render() {
+	renderer.render(scene, camera);
+};
 
-		//horizontal rotation   
-     	group.rotation.y += ( targetRotationX - group.rotation.y ) * 0.1;
- 		
+//Init three.js scene
+function initThree() {
+	scene = new THREE.Scene();
+	camera = new THREE.PerspectiveCamera(75, 792/792, 0.1, 1000 ) //Scene size absolute(500 500)
+	camera.position.z = 100;
+	renderer = new THREE.WebGLRenderer({ alpha: true });
+	renderer.setSize(792,792);
+	renderer.setClearColor(0x333F47, 1);
 
-     	//vertical rotation 
-     	finalRotationY = (targetRotationY - group.rotation.x); 
-  
-		if (group.rotation.x  <= 1 && group.rotation.x >= -1 ) {
-			group.rotation.x += finalRotationY * 0.1;
-		}
-		if (group.rotation.x  > 1 ) {
-			group.rotation.x = 1
-		}
+	//Some random lights.
+ 	light = new THREE.DirectionalLight( 0xffffff );
+	light.position.set( 1, 1, 1 );
+	scene.add( light );
 
-		if (group.rotation.x  < -1 ) {
-			group.rotation.x = -1
-		}
+	light = new THREE.DirectionalLight( 0xffffff );
+	light.position.set( -1, -1, -1 );
+	scene.add( light );
 
-		renderer.render(scene, camera);
-	};
+
+	light = new THREE.AmbientLight( 0xffffff );
+	scene.add( light );
+
+	group = new THREE.Object3D();
+	scene.add(group);
+
+	threeContainer = document.getElementById('threeContainer');
+
+	threeContainer.appendChild( renderer.domElement );
+
+	threeCanvas = threeContainer.getElementsByTagName('canvas')[0]; 
+
+	threeCanvas.addEventListener( 'mousedown', onDocumentMouseDown, false );
+    threeCanvas.addEventListener( 'touchstart', onDocumentTouchStart, false );
+    threeCanvas.addEventListener( 'touchmove', onDocumentTouchMove, false );
+
+    createSkyBox();
+
+	animate();
 }
 
 /*/////////////////////////////////////////////*/
@@ -270,7 +299,7 @@ function onDocumentTouchMove( event ) {
 /*/////////////////////////////////////////////*/
 //Mirror path in all four areas
 //Should mirror path that is drawn on each side of x and y axis.
-var mirrorPath = function(point) {
+function mirrorPath(point) {
 	//mirror the point in the first, third and fourth qadrant
 	var firstPoint = new paper.Point();
 	firstPoint.x = yAxisCenter.x - (point.x - yAxisCenter.x);
@@ -288,45 +317,104 @@ var mirrorPath = function(point) {
 	fourthPath.add(fourthPoint);
 }
 
+// var mirrorHole = function(point) {
+// 	var firstPoint = new paper.Point();
+// 	firstPoint.x = yAxisCenter.x - (point.x - yAxisCenter.x);
+// 	firstPoint.y = xAxisCenter.y + (point.y - xAxisCenter.y);	
+// 	firstHole = new paper.Path.Rectangle(firstPoint, 10);
+// 	firstHole.strokeColor = 'black';
+// 	holes.push(firstHole);
+
+// 	var thirdPoint = new paper.Point();
+// 	thirdPoint.x = yAxisCenter.x - (point.x - yAxisCenter.x);
+// 	thirdPoint.y = xAxisCenter.y  + (xAxisCenter.y - point.y);
+// 	thirdHole = new paper.Path.Rectangle(thirdPoint, 10);
+// 	thirdHole.strokeColor = 'black';
+// 	holes.push(thirdHole);
+
+// 	var fourthPoint = new paper.Point();
+// 	fourthPoint.x = point.x;
+// 	fourthPoint.y = thirdPoint.y;
+// 	fourthHole = new paper.Path.Rectangle(fourthPoint, 10);
+// 	fourthHole.strokeColor = 'black';
+// 	holes.push(fourthHole);
+// }
+
 /*/////////////////////////////////////////////*/
 //Make 3D shape functions
+
+//Make material that is see through with refraction.
+function makeRefractionMaterial(color) {
+	var mat = new THREE.MeshPhongMaterial( {
+		color: color,
+		envMap: skyboxTexture,
+		refractionRatio: .6,
+		shininess: 100,
+		ambient: 0xc3def9,
+        emissive: 0x111111,
+        specular: 0xbbbbbb
+
+	});
+	return mat;
+}
+
 //Make shape from an array of segments(Points.)
-var makeShape = function(segments, planes) {
+ function makeShape(segments, planes) {
 
 	var shapePts = [];
+
+	// var hole = new paper.Path.Circle(origo, 50);
 
 	for(var i = 0; i < segments.length; i++) {
 		var vector = new THREE.Vector2 ( segments[i].point.x, segments[i].point.y );
 		shapePts.push(vector);
 	}
-
-	for( var i = 0; i < shapePts.length; i ++ ) shapePts[ i ].multiplyScalar( 0.25 );
+	for( var i = 0; i < shapePts.length; i ++ ) shapePts[ i ].multiplyScalar( 0.12 );
 	var shape = new THREE.Shape( shapePts);
-	var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+
+	// for(var i = 0; i < holes.length; i++) {
+	// 	var segments = holes[i].segments;
+	// 	var holePts = [];
+	// 	for (var ii = 0; ii < segments.length; ii++) {
+	// 		var vector = new THREE.Vector2 ( segments[ii].point.x, segments[ii].point.y);
+	// 		holePts.push(vector);
+	// 	}
+		
+	// 	for( var iii= 0; iii < holePts.length; iii++ ) holePts[ iii ].multiplyScalar( 0.25);
+	// 	shape.holes.push(new THREE.Shape(holePts));
+	// }
+
+		
+	var extrudeSettings = { amount: 0.5, bevelEnabled: true, bevelSegments: 2, steps: 10, bevelSize: 1, bevelThickness: 1 };
 	addShape( shape,  extrudeSettings, 0xFFFFFF, planes);
 }
 
 //Add shape - with additional shapes to it. in the three.js scene.
-var addShape = function( shape, extrudeSettings, color, planes) {
+function addShape( shape, extrudeSettings, color, planes) {
 
 	var geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+		
 	geometry.center();
 
 	//Remove and add the group.
 	group.remove(subGroup);
 	subGroup = new THREE.Object3D();
 
-	var material = new THREE.MeshLambertMaterial({color: color});
-	var shape = new THREE.Mesh( geometry, material);
-	planes = planes + 1;
+	//var material = new THREE.MeshPhongMaterial({color: color});
+	var material = makeRefractionMaterial(color);
 
-	for(var i=0; i <= (planes/2); i++) {
+	for(var i=0; i <= (planes); i++) {
 		var shapeX = new THREE.Mesh( geometry, material);
 		var shapeY = new THREE.Mesh( geometry, material);
-		shapeX.rotation.x += (Math.PI*(i/(planes/2)));
-		shapeY.rotation.y += (Math.PI*(i/(planes/2)));
-		subGroup.add( shapeX );
-		subGroup.add( shapeY )
+		var shapeZ = new THREE.Mesh( geometry, material);
+		//shapeZ.rotation.x += (Math.PI*(i/(planes/2)));
+		//shapeZ.rotation.x += (Math.PI*(i/(planes-i)));
+		shapeZ.rotation.z += (Math.PI*(i/(planes/2)));
+
+		subGroup.add( shapeZ );
+
+		// subGroup.add( shapeY );
+		// subGroup.add(shapeX);
 	}
 
 	group.add(subGroup);
@@ -334,7 +422,9 @@ var addShape = function( shape, extrudeSettings, color, planes) {
 }
 
 
-var renderShape = function() {
+function renderShape(planes) {
+
+	currentNoOfPlanes = planes;
 
 	var newPath = new paper.Path(myPath.segments);
 	var tempFourth = new paper.Path(fourthPath.segments);
@@ -348,22 +438,87 @@ var renderShape = function() {
 	newPath.join(tempFirst);
 	newPath.closed = true;
 
-	newPath.strokeColor = 'red';
+	//newPath.strokeColor = 'red';
 
 	//Get number of planes - plain js to avoid having to import for ex jquery.
-	var radios = document.getElementsByName('planes');
+	// var radios = document.getElementsByName('planes');
 
-	for (var i = 0, length = radios.length; i < length; i++) {
-	    if (radios[i].checked) {
-	        planes = parseInt(radios[i].value);
-	        break;
-	    }
-	}
+	// for (var i = 0, length = radios.length; i < length; i++) {
+	//     if (radios[i].checked) {
+	//         planes = parseInt(radios[i].value);
+	//         break;
+	//     }
+	// }
 
 	makeShape(newPath.segments, planes);
-	paper.view.draw();
+	//paper.view.draw();
 	newPath.remove();
 }
+
+
+//Main initializing function - should set up paper canvas and three js scene.
+var init = function() {
+	//The main path
+	myPath = new paper.Path();
+	myPath.strokeColor = 'black';
+
+	var infoText = new paper.PointText(new paper.Point(600,200));
+	infoText.justification = 'center';
+	infoText.fillColor = 'black';
+	infoText.content = 'Draw by clicking here';
+
+	//Holes array
+	//holes = [];
+
+	//init simple grid
+	center = new paper.Point(400,400);
+	yAxisCenter = new paper.Point(400,200);
+	yAxisTop = new paper.Point(400, 0);
+	xAxisCenter = new paper.Point(600, 400);
+	origo = new paper.Point(400,400);
+	xAxisRight = new paper.Point(800, 400);
+
+	//make the axis paths
+	var yAxis = new paper.Path();
+	var xAxis = new paper.Path();
+
+	yAxis.add(yAxisTop);
+	yAxis.add(center);
+
+	xAxis.add(xAxisRight);
+	xAxis.add(center);
+
+	yAxis.strokeColor = 'black';
+	xAxis.strokeColor = 'black';
+
+	//make a rect to get a box for detecting clicks inside grid.
+	gridRect = new paper.Rectangle(yAxisTop, new paper.Size(400, 400));
+
+	//add starting point to myPath
+	myPath.add(yAxisCenter);
+
+	//Add mirroring paths
+	firstPath = new paper.Path();
+	thirdPath = new paper.Path();
+	fourthPath = new paper.Path();
+
+	firstPath.add(yAxisCenter);
+	thirdPath.add(new paper.Point(400,600));
+	fourthPath.add(new paper.Point(400, 600));
+
+	firstPath.strokeColor = 'black';
+	thirdPath.strokeColor = 'black';
+	fourthPath.strokeColor = 'black';
+
+	//Draw the view
+	paper.view.draw();
+
+	//init the threejs canvas
+	initThree();
+	render();
+
+}
+
 /*/////////////////////////////////////////////*/
 //END of make shape functions
 /*/////////////////////////////////////////////*/
@@ -373,8 +528,8 @@ var renderShape = function() {
 /*/////////////////////////////////////////////*/
 window.onload = function() {
 	var paperCanvas = document.getElementById('paperCanvas');
-	paperCanvas.height = 500;
-	paperCanvas.width = 500;
+	paperCanvas.height = 1000;
+	paperCanvas.width = 1000;
 	paper.setup('paperCanvas');
 	
 	init();
@@ -384,6 +539,7 @@ window.onload = function() {
 	//Register mousedown tool for the paper canvas.
 	tool.onMouseDown = function onMouseDown(event) {
 
+		//var holesChecked = document.getElementsByName('drawHoles')[0].checked;
 
 		if(event.point.x < (origo.x + 2) && event.point.x > (origo.x - 2) && event.point.y > (yAxisTop.y - 2) && event.point.y < (origo.y + 2)) {
 			myPath.segments = myPath.segments.slice(1);
@@ -400,15 +556,22 @@ window.onload = function() {
 		}
 		// Add a segment to the path at the position of the mouse:
 		else if(event.point.isInside(gridRect)) {
+			// if(!holesChecked) {
+			// 	myPath.add(event.point);
+			// 	mirrorPath(event.point);
+			// } else {
+			// 	hole = new paper.Path.Rectangle(event.point, 10);
+			// 	hole.strokeColor = 'black';
+			// 	holes.push(hole);
+			// 	mirrorHole(event.point);
+			// }
 			myPath.add(event.point);
 			mirrorPath(event.point);
+			
 		}
 		paper.view.draw();
 
-		var autoRender = document.getElementsByName('autoRender')[0].checked;
-		if (autoRender) {
-			renderShape();
-		}
+		renderShape(currentNoOfPlanes);
 	}
 
 	tool.onMouseMove =function onMouseMove(event) {

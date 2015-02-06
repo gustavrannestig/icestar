@@ -522,13 +522,16 @@ function addShape( shape, extrudeSettings, color, planes) {
 		shapeX.rotation.y += (Math.PI*(1/2));
 		shapeX.rotation.x += (Math.PI*(i/(planes/divider)));
 
-		shapezCSG = new ThreeBSP( shapeZ );
-		shapexCSG = new ThreeBSP( shapeX );
+		// shapezCSG = new ThreeBSP( shapeZ );
+		// shapexCSG = new ThreeBSP( shapeX );
 
-		shapeTotCSG = shapezCSG.union(shapexCSG); 
+		// shapeTotCSG = shapezCSG.union(shapexCSG);
 
-		// subGroup.add(shapeZ);
-		// subGroup.add(shapeX);
+		// shapeTot = shapeTotCSG.toMesh(material);
+		// subGroup.add(shapeTot); 
+
+		subGroup.add(shapeZ);
+		subGroup.add(shapeX);
 	}
 
 	group.add(subGroup);	

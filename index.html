@@ -4,6 +4,7 @@
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.js"></script>
 	<script src="//code.jquery.com/jquery-1.10.2.js"></script>
   	<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+  	<script src="libs/ThreeCSG.js"></script>
 	
 	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css"></link>
 	<link rel="stylesheet" href="css/style.css"></link>
@@ -520,8 +521,14 @@ function addShape( shape, extrudeSettings, color, planes) {
 		shapeX.rotation.order = "YXZ";
 		shapeX.rotation.y += (Math.PI*(1/2));
 		shapeX.rotation.x += (Math.PI*(i/(planes/divider)));
-		subGroup.add(shapeZ);
-		subGroup.add(shapeX);
+
+		shapezCSG = new ThreeBSP( shapeZ );
+		shapexCSG = new ThreeBSP( shapeX );
+
+		shapeTotCSG = shapezCSG.union(shapexCSG); 
+
+		// subGroup.add(shapeZ);
+		// subGroup.add(shapeX);
 	}
 
 	group.add(subGroup);	

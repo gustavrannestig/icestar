@@ -2,6 +2,8 @@
 <head>
 	<script type="text/javascript" src="libs/paper-full.js"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.js"></script>
+	<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+  	<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
 	
 	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css"></link>
 	<link rel="stylesheet" href="css/style.css"></link>
@@ -15,29 +17,46 @@
 
 	<div class="row controls">
 
-		<div class="col-xs-12 text-center">
+		<div class="col-xs-12 col-sm-6 text-center">
 			<div class="btn-group">
+				<button type="button" class="btn btn-info no-hover">Number of segments:</button>
 				<button type="button" class="btn btn-info" onclick="renderShape(1)">1</button>
+				<button type="button" class="btn btn-info" onclick="renderShape(2)">2</button>
 				<button type="button" class="btn btn-info" onclick="renderShape(3)">3</button>
+				<button type="button" class="btn btn-info" onclick="renderShape(4)">4</button>
 				<button type="button" class="btn btn-info" onclick="renderShape(5)">5</button>
+				<button type="button" class="btn btn-info" onclick="renderShape(6)">6</button>
 				<button type="button" class="btn btn-info" onclick="renderShape(7)">7</button>
+				<button type="button" class="btn btn-info" onclick="renderShape(8)">8</button>
 				<button type="button" class="btn btn-info" onclick="renderShape(9)">9</button>
-				<button type="button" class="btn btn-info" onclick="renderShape(11)">11</button>
-				<button type="button" class="btn btn-info" onclick="renderShape(13)">13</button>
-				<button type="button" class="btn btn-info" onclick="renderShape(15)">15</button>
-				<button type="button" class="btn btn-info" onclick="renderShape(17)">17</button>
-				<button type="button" class="btn btn-info" onclick="renderShape(19)">19</button>
 			</div>
+		</div>
+		<div class="col-xs-12 col-sm-6 text-center">
+			<div class="btn-group">
 				<button class="btn btn-primary" id="hideBtn" onclick="hideDrawingBoard()">Hide drawing board</button>
-				<button class="btn btn-success hidden" id="showBtn" onclick="showDrawingBoard()">Show drawing board</button>
+				<button class="btn btn-success hidden" id="showBtn" onclick="showDrawingBoard()">Show drawing board</button>		
+				<button class="btn btn-primary" id="hideInfoBtn" onclick="hideInfoBox()">Hide information box</button>
+				<button class="btn btn-success hidden" id="showInfoBtn" onclick="showInfoBox()">Show information box</button>
+				<button class="btn btn-primary" id="restart" onclick="reloadPage()">Restart</button>
+			</div>
 		</div>
 	</div>
 
 	<div class="row">
-		<div class="paper-container col-xs-12 text-center" id="paperContainer">
-			<canvas id="paperCanvas"></canvas>
-		</div>
+		<!-- <div class="paper-container col-xs-12" id="paperContainer"> -->
+			<div class="paper-container" id="paperContainer">
+				<canvas id="paperCanvas"></canvas>
+			</div>
+		<!-- </div> -->
 		
+	</div>
+	<div class="info-box" id="infoBox">
+		<div class="inner">
+			<h2>Draw your own ice-star.</h2>
+			<p>Click on the drawing board to make a path and see the results take shape. Use the number-buttons to change how your star looks by adding more segments to the shape.<br><br>
+			This project was made during the Prototyps prototyping week, spring 2015. Skybox is the work of Emil Persson, aka Humus. <a href="http://www.humus.name">humus.name</a></p>
+			</p>
+		</div>
 	</div>
 </div>
 <script type="x-shader/x-vertex" id="snow-vertex-shader">
@@ -86,7 +105,6 @@ var thirdPath;
 var fourthPath;
 
 var gridRect; //Encapsulating the area that is drawable
-//var holes;
 
 //THREE vars
 var currentNoOfPlanes = 1;
@@ -122,22 +140,50 @@ var windowHalfY = window.innerHeight / 2;
  
 var finalRotationY
 
+var drawingBoardIsShown = true;
+
+
+//Some interface functions
+function hideInfoBox() {
+	document.getElementById('infoBox').className += "hidden";
+	document.getElementById('hideInfoBtn').className += " hidden";
+	document.getElementById('showInfoBtn').className = "btn btn-success";
+}
+
 function hideDrawingBoard() {
 	document.getElementById('paperContainer').className += " hidden";
 	document.getElementById('hideBtn').className += " hidden";
 	document.getElementById('showBtn').className = "btn btn-success"
+	drawingBoardIsShown = false;
+
+}
+
+function showInfoBox() {
+	document.getElementById('infoBox').className = "info-box";
+	document.getElementById('showInfoBtn').className += " hidden";
+	document.getElementById('hideInfoBtn').className = "btn btn-primary";
 }
 
 function showDrawingBoard() {
-	document.getElementById('paperContainer').className = "paper-container col-xs-12 text-center";
+	document.getElementById('paperContainer').className = "paper-container col-xs-12";
 	document.getElementById('showBtn').className += " hidden";
 	document.getElementById('hideBtn').className = "btn btn-primary";
+
+	drawingBoardIsShown = true;
+}
+
+function reloadPage() {
+	window.location.reload();
 }
 
 
 /*//////////////////////////////////////////
 //THREE Setup functions
 ///////////////////////////////////////////*/
+
+/*////////////////////////////////////////*/
+//Skybox is the work of Emil Persson, aka Humus. http://www.humus.name
+
 function createSkyBox() {
 	var textureURLs = [];
 	textureURLs.push(textureFolder + "/posx.jpg");
@@ -147,13 +193,6 @@ function createSkyBox() {
 	textureURLs.push(textureFolder + "/posz.jpg");
 	textureURLs.push(textureFolder + "/negz.jpg");
 
-	// textureURLs.push(textureFolder + "/negx.png");
-	// textureURLs.push(textureFolder + "/posx.png");	
-	// textureURLs.push(textureFolder + "/posy.png");
-	// textureURLs.push(textureFolder + "/negy.png");
-	// textureURLs.push(textureFolder + "/posz.png");
-	// textureURLs.push(textureFolder + "/negz.png");
-	//skyboxTexture = THREE.ImageUtils.loadTextureCube( textureURLs. new THREE.CubeRefractionMapping(), render );
 	skyboxTexture = THREE.ImageUtils.loadTextureCube( textureURLs, THREE.CubeRefractionMapping );
 
 	var shader = THREE.ShaderLib["cube"];
@@ -282,9 +321,9 @@ function initThree() {
 
 	threeCanvas = threeContainer.getElementsByTagName('canvas')[0]; 
 
-	threeCanvas.addEventListener( 'mousedown', onDocumentMouseDown, false );
-    threeCanvas.addEventListener( 'touchstart', onDocumentTouchStart, false );
-    threeCanvas.addEventListener( 'touchmove', onDocumentTouchMove, false );
+	document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+    document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+    document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
     //Set up the lovely environment.
     createSkyBox();
@@ -330,17 +369,17 @@ function onWindowResize() {
 function onDocumentMouseDown( event ) {
  
     event.preventDefault();
+    if(!$(event.target).is("#infoBox *, #infoBox") && !$(event.target).is("#paperContainer *, #paperContainer")) {
+    	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+	    document.addEventListener( 'mouseup', onDocumentMouseUp, false );
+	    document.addEventListener( 'mouseout', onDocumentMouseOut, false );
 
-    threeCanvas.addEventListener( 'mousemove', onDocumentMouseMove, false );
-    threeCanvas.addEventListener( 'mouseup', onDocumentMouseUp, false );
-    threeCanvas.addEventListener( 'mouseout', onDocumentMouseOut, false );
+	    mouseXOnMouseDown = event.clientX - windowHalfX;
+	    targetRotationOnMouseDownX = targetRotationX;
 
-    mouseXOnMouseDown = event.clientX - windowHalfX;
-    targetRotationOnMouseDownX = targetRotationX;
-
-    mouseYOnMouseDown = event.clientY - windowHalfY;
-    targetRotationOnMouseDownY = targetRotationY;
- 
+	    mouseYOnMouseDown = event.clientY - windowHalfY;
+	    targetRotationOnMouseDownY = targetRotationY;
+    }
 }
  
 function onDocumentMouseMove( event ) {
@@ -355,17 +394,17 @@ function onDocumentMouseMove( event ) {
  
 function onDocumentMouseUp( event ) {
  
-    threeCanvas.removeEventListener( 'mousemove', onDocumentMouseMove, false );
-    threeCanvas.removeEventListener( 'mouseup', onDocumentMouseUp, false );
-    threeCanvas.removeEventListener( 'mouseout', onDocumentMouseOut, false );
+    document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
+    document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
+    document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
  
 }
  
 function onDocumentMouseOut( event ) {
  
-    threeCanvas.removeEventListener( 'mousemove', onDocumentMouseMove, false );
-    threeCanvas.removeEventListener( 'mouseup', onDocumentMouseUp, false );
-    threeCanvas.removeEventListener( 'mouseout', onDocumentMouseOut, false );
+    document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
+    document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
+    document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
  
 }
  
@@ -424,29 +463,6 @@ function mirrorPath(point) {
 	fourthPath.add(fourthPoint);
 }
 
-// var mirrorHole = function(point) {
-// 	var firstPoint = new paper.Point();
-// 	firstPoint.x = yAxisCenter.x - (point.x - yAxisCenter.x);
-// 	firstPoint.y = xAxisCenter.y + (point.y - xAxisCenter.y);	
-// 	firstHole = new paper.Path.Rectangle(firstPoint, 10);
-// 	firstHole.strokeColor = 'black';
-// 	holes.push(firstHole);
-
-// 	var thirdPoint = new paper.Point();
-// 	thirdPoint.x = yAxisCenter.x - (point.x - yAxisCenter.x);
-// 	thirdPoint.y = xAxisCenter.y  + (xAxisCenter.y - point.y);
-// 	thirdHole = new paper.Path.Rectangle(thirdPoint, 10);
-// 	thirdHole.strokeColor = 'black';
-// 	holes.push(thirdHole);
-
-// 	var fourthPoint = new paper.Point();
-// 	fourthPoint.x = point.x;
-// 	fourthPoint.y = thirdPoint.y;
-// 	fourthHole = new paper.Path.Rectangle(fourthPoint, 10);
-// 	fourthHole.strokeColor = 'black';
-// 	holes.push(fourthHole);
-// }
-
 /*/////////////////////////////////////////////*/
 //Make 3D shape functions
 
@@ -471,27 +487,12 @@ function makeRefractionMaterial(color) {
 
 	var shapePts = [];
 
-	// var hole = new paper.Path.Circle(origo, 50);
-
 	for(var i = 0; i < segments.length; i++) {
 		var vector = new THREE.Vector2 ( segments[i].point.x, segments[i].point.y );
 		shapePts.push(vector);
 	}
-	for( var i = 0; i < shapePts.length; i ++ ) shapePts[ i ].multiplyScalar( 0.12 );
+	for( var i = 0; i < shapePts.length; i ++ ) shapePts[ i ].multiplyScalar( 0.18 );
 	var shape = new THREE.Shape( shapePts);
-
-	// for(var i = 0; i < holes.length; i++) {
-	// 	var segments = holes[i].segments;
-	// 	var holePts = [];
-	// 	for (var ii = 0; ii < segments.length; ii++) {
-	// 		var vector = new THREE.Vector2 ( segments[ii].point.x, segments[ii].point.y);
-	// 		holePts.push(vector);
-	// 	}
-		
-	// 	for( var iii= 0; iii < holePts.length; iii++ ) holePts[ iii ].multiplyScalar( 0.25);
-	// 	shape.holes.push(new THREE.Shape(holePts));
-	// }
-
 		
 	var extrudeSettings = { amount: 0.5, bevelEnabled: true, bevelSegments: 2, steps: 10, bevelSize: 1, bevelThickness: 1 };
 	addShape( shape,  extrudeSettings, 0xFFFFFF, planes);
@@ -508,28 +509,27 @@ function addShape( shape, extrudeSettings, color, planes) {
 	group.remove(subGroup);
 	subGroup = new THREE.Object3D();
 
-	//var material = new THREE.MeshPhongMaterial({color: color});
 	var material = makeRefractionMaterial(color);
 
 	for(var i=0; i <= (planes); i++) {
 		var shapeX = new THREE.Mesh( geometry, material);
-		var shapeY = new THREE.Mesh( geometry, material);
 		var shapeZ = new THREE.Mesh( geometry, material);
-		//shapeZ.rotation.x += (Math.PI*(i/(planes/2)));
-		// shapeZ.rotation.x += (Math.PI*(i/(planes/2)));
-		// //shapeZ.rotation.y += (Math.PI/16);
-		// shapeZ.rotation.z += (Math.PI*(Math.random()));
-		shapeZ.rotation.z += (Math.PI*(i/(planes/2)));
-		shapeZ.rotation.x += (Math.PI*0.001*i);
-		//shapeZ.rotation.x += (Math.PI*0.005*planes);
+		var divider;
+		if (planes % 2 == 0) {
+			divider = 1;
+		} else {
+			divider = 2;
+		}
 
-		//subGroup.add( shapeZ );
-
-		// subGroup.add( shapeY );
-		 subGroup.add(shapeZ);
+		shapeZ.rotation.z += (Math.PI*(i/(planes/divider)));
+		shapeX.rotation.order = "YXZ";
+		shapeX.rotation.y += (Math.PI*(1/2));
+		shapeX.rotation.x += (Math.PI*(i/(planes/divider)));
+		subGroup.add(shapeZ);
+		subGroup.add(shapeX);
 	}
 
-	group.add(subGroup);
+	group.add(subGroup);	
 	renderer.render(scene, camera);
 }
 
@@ -550,20 +550,11 @@ function renderShape(planes) {
 	newPath.join(tempFirst);
 	newPath.closed = true;
 
-	//newPath.strokeColor = 'red';
-
-	//Get number of planes - plain js to avoid having to import for ex jquery.
-	// var radios = document.getElementsByName('planes');
-
-	// for (var i = 0, length = radios.length; i < length; i++) {
-	//     if (radios[i].checked) {
-	//         planes = parseInt(radios[i].value);
-	//         break;
-	//     }
-	// }
-
-	makeShape(newPath.segments, planes);
-	//paper.view.draw();
+	//check that there is enough segments to acctualy make a shape
+	if(newPath.segments.length > 1) {
+		makeShape(newPath.segments, planes);
+	}
+	
 	newPath.remove();
 }
 
@@ -574,21 +565,18 @@ var init = function() {
 	myPath = new paper.Path();
 	myPath.strokeColor = 'black';
 
-	var infoText = new paper.PointText(new paper.Point(600,200));
+	var infoText = new paper.PointText(new paper.Point(150,125));
 	infoText.justification = 'center';
 	infoText.fillColor = 'black';
-	infoText.content = 'Draw by clicking here';
-
-	//Holes array
-	//holes = [];
+	infoText.content = 'Draw by \n clicking here';
 
 	//init simple grid
-	center = new paper.Point(400,400);
-	yAxisCenter = new paper.Point(400,200);
-	yAxisTop = new paper.Point(400, 0);
-	xAxisCenter = new paper.Point(600, 400);
-	origo = new paper.Point(400,400);
-	xAxisRight = new paper.Point(800, 400);
+	center = new paper.Point(100,250);
+	yAxisCenter = new paper.Point(100,125);
+	yAxisTop = new paper.Point(100, 0);
+	xAxisCenter = new paper.Point(375, 250);
+	origo = new paper.Point(100,250);
+	xAxisRight = new paper.Point(200, 250);
 
 	//make the axis paths
 	var yAxis = new paper.Path();
@@ -604,7 +592,7 @@ var init = function() {
 	xAxis.strokeColor = 'black';
 
 	//make a rect to get a box for detecting clicks inside grid.
-	gridRect = new paper.Rectangle(yAxisTop, new paper.Size(400, 400));
+	gridRect = new paper.Rectangle(yAxisTop, new paper.Size(100, 250));
 
 	//add starting point to myPath
 	myPath.add(yAxisCenter);
@@ -643,6 +631,15 @@ window.onload = function() {
 	paperCanvas.height = 1000;
 	paperCanvas.width = 1000;
 	paper.setup('paperCanvas');
+
+	//make dragables:
+	$(function() {
+    	$( "#paperContainer" ).draggable();
+  	});
+
+  	$(function() {
+  		$("#infoBox").draggable();
+  	});
 	
 	init();
 	
@@ -650,8 +647,6 @@ window.onload = function() {
 	var tooldistanceThreshold = 2;
 	//Register mousedown tool for the paper canvas.
 	tool.onMouseDown = function onMouseDown(event) {
-
-		//var holesChecked = document.getElementsByName('drawHoles')[0].checked;
 
 		if(event.point.x < (origo.x + 2) && event.point.x > (origo.x - 2) && event.point.y > (yAxisTop.y - 2) && event.point.y < (origo.y + 2)) {
 			myPath.segments = myPath.segments.slice(1);
@@ -668,18 +663,8 @@ window.onload = function() {
 		}
 		// Add a segment to the path at the position of the mouse:
 		else if(event.point.isInside(gridRect)) {
-			// if(!holesChecked) {
-			// 	myPath.add(event.point);
-			// 	mirrorPath(event.point);
-			// } else {
-			// 	hole = new paper.Path.Rectangle(event.point, 10);
-			// 	hole.strokeColor = 'black';
-			// 	holes.push(hole);
-			// 	mirrorHole(event.point);
-			// }
 			myPath.add(event.point);
-			mirrorPath(event.point);
-			
+			mirrorPath(event.point);			
 		}
 		paper.view.draw();
 

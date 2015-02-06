@@ -2,10 +2,18 @@ body {
 	background-color: black;
 }
 
+.no-hover:hover, .no-hover:active{
+	background: #5bc0de;
+	border-color: #46b8da;
+	-webkit-box-shadow: none;
+     -moz-box-shadow: none;
+          box-shadow: none;
+}
+
 .controls {
 	padding-bottom: 40px;
 	padding-top: 40px;
-
+	z-index: 100;
 }
 
 .btn-group p {
@@ -14,19 +22,43 @@ body {
 	padding-right: 10px;
 }
 
-.main-wrapper {
-	/*width: 100%;*/
-	/*padding: 25px 25px 25px 25px;*/
+.info-box {
+	height: 340px;
+	width: 490px;
+	position: fixed;
+	top: 80px;
+	right: 0px;
+	background-color: #000000;
+	border-radius: 10px 10px 10px 10px;
+	border: 1px solid #000000;
+	opacity: 0.7;
 }
 
-.paper-container {
-	/*float: left;*/
+.info-box .inner {
+	height: 300px;
+	width: 450px;
+	margin-left: 20px;
+	margin-top: 20px;
+	background: #FFFFFF;
+	padding: 10px;
+}
+
+.paper-container{
+	height: 540px;
+	width: 240px;
+	padding: 20px;
+	position: fixed;
+	top: 80px;
+	left: 0px;
+	background-color: #000000;
+	border-radius: 10px 10px 10px 10px;
+	border: 1px solid #000000;
+	opacity: 0.7;
 }
 
 .paper-container canvas {
-	width: 792px;
-	height: 792px;
-	/*float: right;*/
+	width: 200px;
+	height: 500px;
 	background-color: white;
 }
 
@@ -46,7 +78,7 @@ body {
 	background-color: white;
 }
 
-#hideBtn, #showBtn {
+#hideBtn, #showBtn, #hideInfoBtn, #showInfoBtn {
 	width: 200px;
 }
 

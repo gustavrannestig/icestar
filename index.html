@@ -114,7 +114,12 @@ var threeContainer
 var threeCanvas
 var skyboxTexture
 
-var textureFolder = window.location.pathname + "/skybox";
+if(window.location.pathname) {
+	var textureFolder = window.location.pathname + "/skybox";
+} else {
+	var textureFolder = "/skybox";
+}
+
 
 var particleSystem
 var particleSystemHeight = 100.0;

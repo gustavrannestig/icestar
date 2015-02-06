@@ -43,12 +43,9 @@
 	</div>
 
 	<div class="row">
-		<!-- <div class="paper-container col-xs-12" id="paperContainer"> -->
-			<div class="paper-container" id="paperContainer">
-				<canvas id="paperCanvas"></canvas>
-			</div>
-		<!-- </div> -->
-		
+		<div class="paper-container" id="paperContainer">
+			<canvas id="paperCanvas"></canvas>
+		</div>
 	</div>
 	<div class="info-box" id="infoBox">
 		<div class="inner">
@@ -140,9 +137,6 @@ var windowHalfY = window.innerHeight / 2;
  
 var finalRotationY
 
-var drawingBoardIsShown = true;
-
-
 //Some interface functions
 function hideInfoBox() {
 	document.getElementById('infoBox').className += " hidden";
@@ -154,8 +148,6 @@ function hideDrawingBoard() {
 	document.getElementById('paperContainer').className += " hidden";
 	document.getElementById('hideBtn').className += " hidden";
 	document.getElementById('showBtn').className = "btn btn-success"
-	drawingBoardIsShown = false;
-
 }
 
 function showInfoBox() {
@@ -168,8 +160,6 @@ function showDrawingBoard() {
 	document.getElementById('paperContainer').className = "paper-container col-xs-12";
 	document.getElementById('showBtn').className += " hidden";
 	document.getElementById('hideBtn').className = "btn btn-primary";
-
-	drawingBoardIsShown = true;
 }
 
 function reloadPage() {

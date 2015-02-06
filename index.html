@@ -551,7 +551,7 @@ function renderShape(planes) {
 	newPath.closed = true;
 
 	//check that there is enough segments to acctualy make a shape
-	if(newPath.segments.length > 1) {
+	if(newPath.segments.length > 4) {
 		makeShape(newPath.segments, planes);
 	}
 	

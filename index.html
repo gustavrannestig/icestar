@@ -116,7 +116,7 @@ var threeCanvas
 var skyboxTexture
 
 if(window.location.pathname) {
-	var textureFolder = window.location.pathname + "/skybox";
+	var textureFolder = "/skybox";
 } else {
 	var textureFolder = "/skybox";
 }
@@ -505,6 +505,8 @@ function addShape( shape, extrudeSettings, color, planes) {
 	group.remove(subGroup);
 	subGroup = new THREE.Object3D();
 
+	//shape = new ThreeBSP(new THREE.Mesh( geometry, material)); 
+
 	var material = makeRefractionMaterial(color);
 
 	for(var i=0; i <= (planes); i++) {
@@ -527,12 +529,20 @@ function addShape( shape, extrudeSettings, color, planes) {
 
 		// shapeTotCSG = shapezCSG.union(shapexCSG);
 
+		// newShape = shapeTotCSG.union(shape);
+
+		// shape = newShape;
+
 		// shapeTot = shapeTotCSG.toMesh(material);
 		// subGroup.add(shapeTot); 
 
 		subGroup.add(shapeZ);
 		subGroup.add(shapeX);
 	}
+
+	// shapeTHREE = shape.toMesh(material);
+	// subGroup.add(shapeTHREE);
+
 
 	group.add(subGroup);	
 	renderer.render(scene, camera);

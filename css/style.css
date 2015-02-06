@@ -31,7 +31,7 @@ body {
 	background-color: #000000;
 	border-radius: 10px 10px 10px 10px;
 	border: 1px solid #000000;
-	opacity: 0.7;
+	opacity: 0.9;
 }
 
 .info-box .inner {
@@ -53,13 +53,14 @@ body {
 	background-color: #000000;
 	border-radius: 10px 10px 10px 10px;
 	border: 1px solid #000000;
-	opacity: 0.7;
+	opacity: 0.9;
 }
 
 .paper-container canvas {
 	width: 200px;
 	height: 500px;
 	background-color: white;
+	opacity: 1;
 }
 
 .three-container {
